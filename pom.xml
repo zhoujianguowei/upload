@@ -119,6 +119,11 @@
             <version>1.4</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>org.apache.thrift</groupId>
+            <artifactId>libthrift</artifactId>
+            <version>0.14.1</version>
+        </dependency>
     </dependencies>
 
     <build>
