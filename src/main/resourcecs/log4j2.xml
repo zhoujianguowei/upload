@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO" name="exercise" monitorInterval="60">
+
+    <Appenders>
+        <Console name="stdout" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{ABSOLUTE} %5p %c:%L - %m%n"/>
+        </Console>
+        <RollingFile name="INFO_LOG" fileName="logs/exercise.log"
+                     filePattern="logs/old/exercise-%d{yyyy-MM-dd-HH}.%i.log">
+            <PatternLayout pattern="%d{DEFAULT} [ %p ] %c{1} - %m%n"/>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="100 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="logs" maxDepth="2">
+                    <IfLastModified age="10d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <RollingFile name="WARN_LOG" fileName="logs/exercise.error.log"
+                     filePattern="logs/old/exercise.error-%d{yyyy-MM-dd}.%i.log">
+            <PatternLayout pattern="%d{DEFAULT} [ %p ] %c{1} - %m%n"/>
+            <Policies>
+                <OnStartupTriggeringPolicy/>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="500 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="logs" maxDepth="2">
+                    <IfLastModified age="10d"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+        </RollingFile>
+        <Async name="Async_INFO_LOG">
+            <AppenderRef ref="INFO_LOG"/>
+        </Async>
+        <Async name="Async_WARN_LOG">
+            <AppenderRef ref="WARN_LOG"/>
+        </Async>
+    </Appenders>
+
+
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="stdout"/>
+            <AppenderRef ref="Async_INFO_LOG"/>
+            <AppenderRef ref="Async_WARN_LOG" level="WARN"/>
+        </Root>
+
+    </Loggers>
+
+</Configuration>

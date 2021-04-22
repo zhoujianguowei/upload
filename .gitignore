@@ -1,0 +1,17 @@
+/node_modules
+coverage/
+*.log
+npm-debug.log
+.logs/
+logs/
+run/
+.idea/
+.DS_Store
+.tmp/
+.vscode/
+/public/assets/
+/output
+filetmp/
+core*
+*.iml
+classes/
