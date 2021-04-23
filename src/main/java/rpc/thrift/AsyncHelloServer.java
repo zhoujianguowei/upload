@@ -6,7 +6,7 @@ import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.AbstractNonblockingServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
-import org.apache.thrift.server.ThriftPackFieldPub;
+import org.apache.thrift.util.ThriftPackFieldPub;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TNonblockingSocket;
 import org.apache.thrift.transport.TTransportException;

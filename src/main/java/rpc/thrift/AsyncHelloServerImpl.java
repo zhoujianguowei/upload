@@ -17,7 +17,7 @@ public class AsyncHelloServerImpl implements Hello.AsyncIface {
     }
 
     @Override
-    public void helloString(String param, AsyncMethodCallback<String> resultHandler) throws TException {
+    public void helloString(String param, AsyncMethodCallback resultHandler) throws TException {
         LOGGER.info("async helloString||params={}", param);
         if (StringUtils.isBlank(param)) {
             LOGGER.warn("param is empty");
