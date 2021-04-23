@@ -64,7 +64,7 @@ public class AsyncHelloServer {
                     TNonblockingSocket socket = (TNonblockingSocket) ThriftPackFieldPub.TRANS_FIELD.get(fb);
                     InetSocketAddress address = (InetSocketAddress) socket.getSocketChannel().getRemoteAddress();
                     InetAddress inetAddress = address.getAddress();
-                    LOGGER.info("remoteIp={}||remotePort={}||remoteHostName={}", inetAddress.getHostAddress(), address.getPort(), inetAddress.getHostName());
+                    LOGGER.debug("remoteIp={}||remotePort={}||remoteHostName={}", inetAddress.getHostAddress(), address.getPort(), inetAddress.getHostName());
                     super.execute(command);
                 } catch (Exception e) {
                     LOGGER.error("failed to access remote address", e);

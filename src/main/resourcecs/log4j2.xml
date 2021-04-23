@@ -9,13 +9,12 @@
                      filePattern="logs/old/exercise-%d{yyyy-MM-dd-HH}.%i.log">
             <PatternLayout pattern="%d{DEFAULT} [ %p ] %c{1} - %m%n"/>
             <Policies>
-                <OnStartupTriggeringPolicy/>
-                <TimeBasedTriggeringPolicy/>
+                <TimeBasedTriggeringPolicy interval="1"/>
                 <SizeBasedTriggeringPolicy size="100 MB"/>
             </Policies>
-            <DefaultRolloverStrategy>
-                <Delete basePath="logs" maxDepth="2">
-                    <IfLastModified age="10d"/>
+            <DefaultRolloverStrategy >
+                <Delete basePath="logs" maxDepth="2" testMode="false">
+                    <IfLastModified age="5d"/>
                 </Delete>
             </DefaultRolloverStrategy>
         </RollingFile>
@@ -23,8 +22,7 @@
                      filePattern="logs/old/exercise.error-%d{yyyy-MM-dd}.%i.log">
             <PatternLayout pattern="%d{DEFAULT} [ %p ] %c{1} - %m%n"/>
             <Policies>
-                <OnStartupTriggeringPolicy/>
-                <TimeBasedTriggeringPolicy/>
+                <TimeBasedTriggeringPolicy interval="1"/>
                 <SizeBasedTriggeringPolicy size="500 MB"/>
             </Policies>
             <DefaultRolloverStrategy>

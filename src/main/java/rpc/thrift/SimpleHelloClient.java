@@ -8,6 +8,7 @@ import org.apache.thrift.transport.TSocket;
 
 import java.util.Objects;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class SimpleHelloClient {
     public static void clientServe(Hello.Client client) throws TException {
@@ -20,7 +21,7 @@ public class SimpleHelloClient {
         }
     }
 
-    public static void main(String[] args) throws Exception {
+    private static void simpleClientServe(AtomicLong reqTotal) {
         TSocket transport = null;
         try {
             System.out.println("simple client start");
@@ -32,11 +33,20 @@ public class SimpleHelloClient {
             Hello.Client client = new Hello.Client(
                     protocol);
             transport.open();
-            clientServe(client);
+            while (true) {
+                client.helloString("nice");
+                reqTotal.incrementAndGet();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             if (null != transport) {
                 transport.close();
             }
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        AsyncHelloClient.measurePressureQPS(SimpleHelloClient::simpleClientServe,100);
     }
 }
