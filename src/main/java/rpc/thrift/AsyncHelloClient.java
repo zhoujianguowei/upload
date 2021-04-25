@@ -1,12 +1,17 @@
 package rpc.thrift;
 
+import com.sun.org.apache.bcel.internal.generic.InstructionConstants;
 import org.apache.thrift.TConfiguration;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.layered.TFramedTransport;
+import rpc.thrift.file.transfer.FileSegment;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -44,9 +49,41 @@ public class AsyncHelloClient {
             TProtocol protocol = new TCompactProtocol(transport);
             Hello.Client client = new Hello.Client(protocol);
             transport.open();
-            while (true) {
-                String result = client.helloString("nice");
+            Scanner scanner = new Scanner(System.in);
+            String line = scanner.nextLine();
+            while (!Objects.equals("exit", line)) {
+                FileSegment segment = null;
+                switch (line) {
+                    case "large":
+                        segment = new FileSegment();
+                        segment.setContents(new byte[1024]);
+                        segment.setFileName(line);
+                        break;
+                    case "empty":
+                        segment = new FileSegment();
+                        segment.setContents(new byte[10]);
+                        segment.setFileName(line);
+                        break;
+                    case "init":
+                        segment = new FileSegment();
+                        segment.setContents(new byte[100]);
+                        segment.setFileName(line);
+                        break;
+                    default:
+                        segment=new FileSegment();
+                        segment.setContents(new byte[0]);
+                        break;
+                }
+                List<FileSegment> segmentList = client.transferData(segment);
+                if (segmentList == null) {
+                    System.out.println("ret result is null");
+                } else if (segmentList.isEmpty()) {
+                    System.out.println("ret result is empty");
+                } else {
+                    System.out.println("ret content size=" + segmentList.get(0).getContents().length);
+                }
                 reqTotal.incrementAndGet();
+                line=scanner.nextLine();
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -59,6 +96,6 @@ public class AsyncHelloClient {
 
     public static void main(String[] args) {
         System.out.println("async client start");
-        measurePressureQPS(AsyncHelloClient::clientServe, 1);
+        clientServe(new AtomicLong());
     }
 }
