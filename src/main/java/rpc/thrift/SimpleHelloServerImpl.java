@@ -1,7 +1,6 @@
 package rpc.thrift;
 
 import org.apache.thrift.TException;
-import rpc.thrift.Hello;
 import rpc.thrift.file.transfer.FileSegment;
 
 import java.util.List;

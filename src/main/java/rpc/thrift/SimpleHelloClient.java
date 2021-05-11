@@ -5,6 +5,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
 import org.apache.thrift.transport.TSocket;
+import rpc.thrift.file.service.AsyncFileTransferClient;
 
 import java.util.Objects;
 import java.util.Scanner;
@@ -47,6 +48,6 @@ public class SimpleHelloClient {
     }
 
     public static void main(String[] args) throws Exception {
-        AsyncHelloClient.measurePressureQPS(SimpleHelloClient::simpleClientServe,100);
+        AsyncFileTransferClient.measurePressureQPS(SimpleHelloClient::simpleClientServe,100);
     }
 }

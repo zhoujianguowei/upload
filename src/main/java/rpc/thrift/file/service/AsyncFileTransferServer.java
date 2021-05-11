@@ -1,4 +1,4 @@
-package rpc.thrift;
+package rpc.thrift.file.service;
 
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.apache.thrift.TProcessor;
@@ -6,13 +6,14 @@ import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.AbstractNonblockingServer;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TThreadedSelectorServer;
-import org.apache.thrift.util.ThriftPackFieldPub;
 import org.apache.thrift.transport.TNonblockingServerSocket;
 import org.apache.thrift.transport.TNonblockingSocket;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.layered.TFramedTransport;
+import org.apache.thrift.util.ThriftPackFieldPub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rpc.thrift.file.transfer.FileTransfer;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -22,16 +23,16 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public class AsyncHelloServer {
+public class AsyncFileTransferServer {
     public static int ASYNC_HELLO_SERVER_PORT = 10033;
     public static int BACK_LOG = 100;
     private static int SELECTOR_THREADS = 16;
     private static int ACCEPT_QUEUE_PER_THREAD = 1000;
-    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncHelloServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncFileTransferServer.class);
 
 
     public static void main(String[] args) throws TTransportException {
-        TProcessor processor = new Hello.AsyncProcessor(AsyncHelloServerImpl.getInstance());
+        TProcessor processor = new FileTransfer.AsyncProcessor<>(FileTransferServiceImpl.getInstance());
         TNonblockingServerSocket transport = new TNonblockingServerSocket(
                 new TNonblockingServerSocket.NonblockingAbstractServerSocketArgs()
                         .port(ASYNC_HELLO_SERVER_PORT)
