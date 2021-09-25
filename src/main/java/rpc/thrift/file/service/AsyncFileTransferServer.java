@@ -13,7 +13,7 @@ import org.apache.thrift.transport.layered.TFramedTransport;
 import org.apache.thrift.util.ThriftPackFieldPub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rpc.thrift.file.transfer.FileTransfer;
+import rpc.thrift.file.transfer.FileTransferWorker;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -32,7 +32,7 @@ public class AsyncFileTransferServer {
 
 
     public static void main(String[] args) throws TTransportException {
-        TProcessor processor = new FileTransfer.AsyncProcessor<>(FileTransferServiceImpl.getInstance());
+        TProcessor processor = new FileTransferWorker.AsyncProcessor<>(FileTransferServiceImpl.getInstance());
         TNonblockingServerSocket transport = new TNonblockingServerSocket(
                 new TNonblockingServerSocket.NonblockingAbstractServerSocketArgs()
                         .port(ASYNC_HELLO_SERVER_PORT)

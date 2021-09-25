@@ -5,8 +5,9 @@ import org.apache.thrift.TException;
 import org.apache.thrift.async.AsyncMethodCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rpc.thrift.file.transfer.FileSegment;
-import rpc.thrift.file.transfer.FileTransfer;
+import rpc.thrift.file.transfer.FileSegmentRequest;
+import rpc.thrift.file.transfer.FileSegmentResponse;
+import rpc.thrift.file.transfer.FileTransferWorker;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -14,7 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
-public class FileTransferServiceImpl implements FileTransfer.AsyncIface {
+public class FileTransferServiceImpl implements FileTransferWorker.AsyncIface {
     private static FileTransferServiceImpl instance;
     private Map<String, File> cacheFileMap = Maps.newConcurrentMap();
     private Map<String, FileOutputStream> fileOutputStreamMap = Maps.newConcurrentMap();
@@ -22,7 +23,7 @@ public class FileTransferServiceImpl implements FileTransfer.AsyncIface {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferServiceImpl.class);
 
     @Override
-    public void transferFile(FileSegment segment, String token, AsyncMethodCallback<Long> resultHandler) throws TException {
+    public void transferFile(FileSegmentRequest segment, String token, AsyncMethodCallback<FileSegmentResponse> resultHandler) throws TException {
         String identifier = segment.getIdentifier();
         String fileName = segment.getFileName();
         File file = cacheFileMap.computeIfAbsent(identifier, k -> new File(fileName));
@@ -58,7 +59,7 @@ public class FileTransferServiceImpl implements FileTransfer.AsyncIface {
             } catch (IOException e) {
                 LOGGER.error("exception", e);
             } finally {
-                resultHandler.onComplete(-1L);
+//                resultHandler.onComplete(-1L);
             }
         } else {
             byte[] contents = segment.getContents();
@@ -67,8 +68,8 @@ public class FileTransferServiceImpl implements FileTransfer.AsyncIface {
             } catch (IOException e) {
                 LOGGER.error("exception occurred", e);
             } finally {
-                fileFilePosMap.put(identifier,currentPos+length);
-                resultHandler.onComplete(currentPos + length);
+                fileFilePosMap.put(identifier, currentPos + length);
+//                resultHandler.onComplete(currentPos + length);
             }
         }
     }
