@@ -3,6 +3,8 @@ namespace java rpc.thrift.file.transfer
 enum ResResult{
     //文件首次传输
     FILE_START,
+    //传输参数错误
+    FILE_PARAM_VALIDATION_FAIL,
     //文件传输成功，还没有传输完成
     SUCCESS,
     //文件token鉴权失败

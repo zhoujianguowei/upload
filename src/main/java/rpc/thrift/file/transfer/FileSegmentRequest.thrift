@@ -24,12 +24,12 @@ struct FileSegmentRequest{
 	5:required string identifier;
 	//如果当前是文件，指的是当前文件传输的位置
 	6:optional i64 startPos=0;
-	//如果当前传输的是文件，当前传输的字节序列校验码
-	7:optional string checkSum;
+	//当前序列校验码
+	7:required string checkSum;
 	//传输的文件字节数组内容
 	8:optional binary contents;
 	//传输文件字节大小
-	9:required i32 bytesLength;
+	9:optional i32 bytesLength;
 	//是否加密传输
 	10:optional bool encrypted=false;
 	//如果设置加密传输，加密传输的方式
