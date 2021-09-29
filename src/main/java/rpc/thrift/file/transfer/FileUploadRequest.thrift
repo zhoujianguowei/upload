@@ -11,7 +11,7 @@ enum EncryptTypeEnum{
     BYTE_REVERSE=3
 }
 //文件传输的thrift请求提
-struct FileSegmentRequest{
+struct FileUploadRequest{
 	//文件或者目录的名称
 	1: required string fileName;
 	//保存的文件父目录，如果不存在，在服务端创建对应的目录

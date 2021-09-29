@@ -1,9 +1,9 @@
 namespace java rpc.thrift.file.transfer
-include "FileSegmentRequest.thrift"
-include "FileSegmentResponse.thrift"
+include "FileUploadRequest.thrift"
+include "FileUploadResponse.thrift"
 namespace java rpc.thrift.file.transfer
 service FileTransferWorker{
 	//upload file
-	 FileSegmentResponse.FileSegmentResponse transferFile(1:required FileSegmentRequest.FileSegmentRequest req,
+	 FileUploadResponse.FileUploadResponse uploadFile(1:required FileUploadRequest.FileUploadRequest req,
 	 2:optional string token);
 }

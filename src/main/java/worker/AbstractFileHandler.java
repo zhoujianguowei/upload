@@ -1,26 +1,22 @@
 package worker;
 
 import common.ErrorMeta;
-import cons.BusinessConstant;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rpc.thrift.file.transfer.FileSegmentRequest;
-import rpc.thrift.file.transfer.FileSegmentResponse;
 import rpc.thrift.file.transfer.FileTypeEnum;
+import rpc.thrift.file.transfer.FileUploadRequest;
+import rpc.thrift.file.transfer.FileUploadResponse;
 import rpc.thrift.file.transfer.ResResult;
 
-import java.util.Arrays;
-
-import static cons.BusinessConstant.*;
+import static cons.BusinessConstant.FileUploadErrorMsg;
 
 /**
- * 处理文件上传的抽象父类
+ * 处理文件上传、下载的抽象父类
  */
-public abstract class AbsFileUploadWorker {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbsFileUploadWorker.class);
+public abstract class AbstractFileHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractFileHandler.class);
 
     /**
      * 是否允许上传
@@ -44,7 +40,7 @@ public abstract class AbsFileUploadWorker {
      * @param request
      * @return
      */
-    protected ErrorMeta<String> validateRequestParam(FileSegmentRequest request) {
+    protected ErrorMeta<String> validateRequestParam(FileUploadRequest request) {
         FileTypeEnum fileTypeEnum = request.getFileType();
         ErrorMeta<String> errorMeta = new ErrorMeta<>();
         if (fileTypeEnum == FileTypeEnum.DIR_TYPE) {
@@ -77,16 +73,16 @@ public abstract class AbsFileUploadWorker {
 
     }
 
-    public abstract FileSegmentResponse doHandleUploadFile(FileSegmentRequest request);
+    public abstract FileUploadResponse doHandleUploadFile(FileUploadRequest request);
 
-    public final FileSegmentResponse handleUploadFile(FileSegmentRequest request, String token) {
+    public final FileUploadResponse handleUploadFile(FileUploadRequest request, String token) {
         ErrorMeta<String> errorMeta = new ErrorMeta<>();
         if (StringUtils.isNotBlank(token)) {
             if (!authorized(token)) {
                 errorMeta.addErrorMsg(FileUploadErrorMsg.TOKEN_VALIDATION_FAIL);
             }
         }
-        FileSegmentResponse response = new FileSegmentResponse();
+        FileUploadResponse response = new FileUploadResponse();
         errorMeta.combine(validateRequestParam(request));
         if (!errorMeta.isLegal()) {
             response.setUploadStatusResult(ResResult.FILE_PARAM_VALIDATION_FAIL);

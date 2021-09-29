@@ -14,7 +14,7 @@ enum ResResult{
     //文件传输完成
     FILE_END
 }
-struct FileSegmentResponse{
+struct FileUploadResponse{
     1:required ResResult uploadStatusResult;
     //如果是文件，表示下一步需要传输的文件起始字节索引
     2:optional i64 nextPos;
