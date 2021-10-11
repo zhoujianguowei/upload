@@ -6,6 +6,7 @@ import rpc.thrift.file.transfer.FileTransferWorker;
 import rpc.thrift.file.transfer.FileUploadRequest;
 import rpc.thrift.file.transfer.FileUploadResponse;
 import worker.AbstractFileHandler;
+import worker.DefaultFileHandler;
 
 public class FileTransferServiceImpl implements FileTransferWorker.AsyncIface {
     private static FileTransferServiceImpl instance;
@@ -20,8 +21,7 @@ public class FileTransferServiceImpl implements FileTransferWorker.AsyncIface {
 
     @Override
     public void uploadFile(FileUploadRequest request, String token, AsyncMethodCallback<FileUploadResponse> resultHandler) throws TException {
-        AbstractFileHandler abstractFileHandler = null;
-        //#todo
+        AbstractFileHandler abstractFileHandler = new DefaultFileHandler();
         FileUploadResponse uploadResponse = abstractFileHandler.handleUploadFile(request, token);
         resultHandler.onComplete(uploadResponse);
     }

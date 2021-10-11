@@ -11,6 +11,8 @@ enum ResResult{
     TOKEN_FAILED,
     //文件传输损坏
     FILE_BROKEN,
+    //其它未知错误
+    UNKNOWN_ERROR,
     //文件传输完成
     FILE_END
 }
