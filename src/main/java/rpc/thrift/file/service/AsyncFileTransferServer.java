@@ -24,11 +24,11 @@ import java.util.concurrent.TimeUnit;
 
 
 public class AsyncFileTransferServer {
-    public static int ASYNC_HELLO_SERVER_PORT = 10033;
+    public static int FILE_HANDLER_SERVER_PORT = 10033;
     public static int BACK_LOG = 100;
     private static int SELECTOR_THREADS = 16;
     private static int ACCEPT_QUEUE_PER_THREAD = 1000;
-    private static long MAX_READ_BUFFER_BYTES=256*1024*1024;
+    private static long MAX_READ_BUFFER_BYTES = 256 * 1024 * 1024;
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncFileTransferServer.class);
 
 
@@ -36,7 +36,7 @@ public class AsyncFileTransferServer {
         TProcessor processor = new FileTransferWorker.AsyncProcessor<>(FileTransferServiceImpl.getInstance());
         TNonblockingServerSocket transport = new TNonblockingServerSocket(
                 new TNonblockingServerSocket.NonblockingAbstractServerSocketArgs()
-                        .port(ASYNC_HELLO_SERVER_PORT)
+                        .port(FILE_HANDLER_SERVER_PORT)
                         .backlog(BACK_LOG)
         );
         LOGGER.info("async server start");
@@ -47,7 +47,7 @@ public class AsyncFileTransferServer {
                 .selectorThreads(SELECTOR_THREADS)
                 .acceptQueueSizePerThread(ACCEPT_QUEUE_PER_THREAD)
                 .executorService(getExecutorService());
-        serverArgs.maxReadBufferBytes=MAX_READ_BUFFER_BYTES;
+        serverArgs.maxReadBufferBytes = MAX_READ_BUFFER_BYTES;
 
         TServer server = new TThreadedSelectorServer(serverArgs);
         server.serve();

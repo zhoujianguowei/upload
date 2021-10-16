@@ -5,8 +5,8 @@ import org.apache.thrift.async.AsyncMethodCallback;
 import rpc.thrift.file.transfer.FileTransferWorker;
 import rpc.thrift.file.transfer.FileUploadRequest;
 import rpc.thrift.file.transfer.FileUploadResponse;
-import worker.AbstractFileHandler;
-import worker.DefaultFileHandler;
+import worker.AbstractServerHandler;
+import worker.DefaultServerHandler;
 
 public class FileTransferServiceImpl implements FileTransferWorker.AsyncIface {
     private static FileTransferServiceImpl instance;
@@ -21,8 +21,8 @@ public class FileTransferServiceImpl implements FileTransferWorker.AsyncIface {
 
     @Override
     public void uploadFile(FileUploadRequest request, String token, AsyncMethodCallback<FileUploadResponse> resultHandler) throws TException {
-        AbstractFileHandler abstractFileHandler = new DefaultFileHandler();
-        FileUploadResponse uploadResponse = abstractFileHandler.handleUploadFile(request, token);
+        AbstractServerHandler abstractServerHandler = new DefaultServerHandler();
+        FileUploadResponse uploadResponse = abstractServerHandler.handleUploadFile(request, token);
         resultHandler.onComplete(uploadResponse);
     }
 }

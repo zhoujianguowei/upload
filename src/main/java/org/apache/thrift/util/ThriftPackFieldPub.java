@@ -13,7 +13,7 @@ public class ThriftPackFieldPub {
 
     static {
         try {
-            Class invocationClass=Class.forName("org.apache.thrift.server.Invocation");
+            Class invocationClass = Class.forName("org.apache.thrift.server.Invocation");
             FRAME_BUFFER_FIELD = invocationClass.getDeclaredField("frameBuffer");
             FRAME_BUFFER_FIELD.setAccessible(true);
             TRANS_FIELD = AbstractNonblockingServer.FrameBuffer.class.getDeclaredField("trans_");
