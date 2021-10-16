@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -28,6 +29,7 @@ public class ConfigData {
         Properties properties = new Properties();
         properties.load(new FileInputStream(storeFile));
         properties.setProperty(key, configData);
+        properties.store(new FileOutputStream(storeFile), "config data");
     }
 
     public static String getStoreConfigData(String configKey) {
