@@ -113,6 +113,10 @@ public abstract class AbstractClientWorker {
         String rootFileName = file.getName();
         String parentFilePath = StringUtils.isBlank(file.getParent()) ? "" : file.getParent();
         for (File uploadFile : fileLists) {
+            if (uploadFile.isFile() && uploadFile.length() <= 0L) {
+                LOGGER.warn("file lack content,ignore||filePath={}", uploadFile.getAbsolutePath());
+                continue;
+            }
             FileTransferWorker.Client client = remoteRpcNode.getRemoteClient();
             String fileAbsolutePath = uploadFile.getAbsolutePath();
             //获取相对于根目录的相对路径,比如当前根目录是d:/test，对应子目录是d:/test/nice/mv.mp4，那么相对路径就是test/nice
