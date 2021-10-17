@@ -36,12 +36,12 @@ public interface UploadFileCallBack {
     /**
      * 文件上传进度
      *
-     * @param rootPath              如果上传的是文件夹，表示的是跟文件路径
      * @param totalFileBytesLength  上传的是文件夹，根文件夹路径
+     * @param totalUploadFileBytes  已经上传的文件总大小
      * @param filePath              上传文件路径
      * @param fileBytesLength       当前上传文件大小
      * @param uploadFileBytesLength 上传文件大小
      */
-    void onFileUploadProgress(String rootPath, long totalFileBytesLength, String filePath, long fileBytesLength, long uploadFileBytesLength);
+    void onFileUploadProgress(String fileIdentifier,long totalFileBytesLength, long totalUploadFileBytes, String filePath, long fileBytesLength, long uploadFileBytesLength);
 
 }

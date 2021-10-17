@@ -5,11 +5,14 @@ import cons.CommonConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rpc.thrift.file.transfer.FileTypeEnum;
 import rpc.thrift.file.transfer.FileUploadRequest;
 import rpc.thrift.file.transfer.FileUploadResponse;
 import rpc.thrift.file.transfer.ResResult;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.regex.Pattern;
 
 /**
@@ -17,6 +20,17 @@ import java.util.regex.Pattern;
  */
 public class DefaultServerHandler extends AbstractServerHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultServerHandler.class);
+
+    private static class InnerInstance {
+        static DefaultServerHandler instance = new DefaultServerHandler();
+    }
+
+    private DefaultServerHandler() {
+    }
+
+    public static DefaultServerHandler getSingleTon() {
+        return InnerInstance.instance;
+    }
 
     @Override
     boolean authorized(String token, String fileName) {
@@ -87,14 +101,117 @@ public class DefaultServerHandler extends AbstractServerHandler {
     /**
      * 处理上传的是文件
      *
-     * @param parentFileFolder 上传的父目录，如果在当前路径下
+     * @param parentFileFolder 上传的父目录
      * @param request
      * @return
      */
     protected FileUploadResponse handleUploadFile(File parentFileFolder, FileUploadRequest request) {
-        return null;
+        FileUploadResponse response = new FileUploadResponse();
+        CachedUploadFileStructure cachedUploadFileStructure = uploadCacheLoader.getIfPresent(request.getIdentifier());
+        RandomAccessFile tmpAccessFile = cachedUploadFileStructure.getRandomAccessFile();
+        File tmpFile;
+        if (parentFileFolder == null) {
+            tmpFile = new File(cachedUploadFileStructure.getTmpFileName());
+        } else {
+            tmpFile = new File(parentFileFolder, cachedUploadFileStructure.getTmpFileName());
+        }
+        //首次上传
+        if (tmpAccessFile == null) {
+            synchronized (this) {
+                try {
+                    if (tmpAccessFile == null) {
+                        tmpAccessFile = new RandomAccessFile(tmpFile, "rwd");
+                    }
+                    cachedUploadFileStructure.setRandomAccessFile(tmpAccessFile);
+                } catch (Exception e) {
+                    LOGGER.error("failed to create tmp file", e);
+                    throw new RuntimeException("failed to create tmp file");
+                }
+            }
+        }
+        //调整上传分段offset值
+        if (request.getStartPos() != cachedUploadFileStructure.getCachedFileOffset()) {
+            response.setUploadStatusResult(ResResult.SUCCESS);
+            response.setNextPos(cachedUploadFileStructure.getCachedFileOffset());
+            return response;
+        }
+        try {
+            tmpAccessFile.seek(request.startPos);
+            byte[] segmentContents = request.getContents();
+            int segmentBytesLength = request.getBytesLength();
+            tmpAccessFile.write(segmentContents, 0, segmentBytesLength);
+            long nextPos = request.getStartPos() + segmentBytesLength;
+            //更新上传进度
+            cachedUploadFileStructure.setCachedFileOffset(nextPos);
+            response.setNextPos(nextPos);
+            //文件上传完成
+            if (request.getStartPos() + segmentBytesLength == cachedUploadFileStructure.getFileBytesLength()) {
+                tmpAccessFile.close();
+                //文件重命名
+                File realFile = new File(tmpFile.getParent(), cachedUploadFileStructure.getFileName());
+                if (!tmpFile.renameTo(realFile)) {
+                    LOGGER.warn("failed to rename file||tmpFilePath={}||realFilePath={}", tmpFile.getAbsolutePath(), realFile.getAbsoluteFile());
+                }
+                response.setUploadStatusResult(ResResult.FILE_END);
+            } else {
+                response.setUploadStatusResult(ResResult.SUCCESS);
+            }
+        } catch (IOException e) {
+            LOGGER.error("failed to write file", e);
+            if (tmpAccessFile != null) {
+                try {
+                    tmpAccessFile.close();
+                } catch (IOException e1) {
+                    LOGGER.error("io exception", e);
+                }
+            }
+            throw new RuntimeException("failed to write file");
+        }
+        return response;
     }
 
+    /**
+     * 检查上传的文件是否已存在
+     *
+     * @param parentFile
+     * @param request
+     * @return
+     */
+    public boolean targetFileExists(String parentFile, FileUploadRequest request) {
+        File targetFile;
+        if (StringUtils.isNotBlank(parentFile)) {
+            targetFile = new File(parentFile, request.getFileName());
+        } else {
+            targetFile = new File(request.getFileName());
+        }
+        FileTypeEnum typeEnum = request.getFileType();
+        boolean exists = false;
+        if (targetFile.exists()) {
+            switch (typeEnum) {
+                case DIR_TYPE:
+                    if (targetFile.isDirectory()) {
+                        exists = true;
+                    }
+                    break;
+                case FILE_TYPE:
+                    if (targetFile.isFile()) {
+                        exists = true;
+                    }
+                    break;
+            }
+        }
+        if (exists) {
+            LOGGER.warn("target upload file exists,ignore||targetFilePath={}", targetFile.getAbsolutePath());
+        }
+        return exists;
+    }
+
+    /**
+     * 上传单个文件，如果文件已存在，直接返回上传成功
+     *
+     * @param request
+     * @return
+     */
     @Override
     public FileUploadResponse doHandleUploadFile(FileUploadRequest request) {
         FileUploadResponse response = new FileUploadResponse();
@@ -109,6 +226,11 @@ public class DefaultServerHandler extends AbstractServerHandler {
                 return response;
             }
         }
+        if (targetFileExists(parentFile == null ? null : parentFile.getAbsolutePath(), request)) {
+            response.setUploadStatusResult(ResResult.FILE_END);
+            return response;
+        }
+
         switch (request.getFileType()) {
             case FILE_TYPE:
                 response = handleUploadFile(parentFile, request);

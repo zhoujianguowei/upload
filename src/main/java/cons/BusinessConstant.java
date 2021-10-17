@@ -15,8 +15,14 @@ public class BusinessConstant {
         String TOKEN_VALIDATION_FAIL = "token校验失败";
         String IDENTIFIER_VALIDATE_FAILED = "文件身份校验失败";
         String FILE_CHECK_SUM_VALIDATE_FAILED = "校验码错误";
+        String FILE_WRITE_BYTES_LENGTH_OVER_FLOW = "写入文件超过文件总大小";
 
     }
+
+    /**
+     * 上传的文件临时名称
+     */
+    public static final String TMP_UPLOAD_FILE_NAME_SUFFIX = ".tmp";
 
     /**
      * 配置文件内容
@@ -26,5 +32,13 @@ public class BusinessConstant {
          * 当前主机唯一标识
          */
         String HOST_IDENTIFIER_KEY = "host_identifier";
+        /**
+         * 一次上传的字节数,默认100kb
+         */
+        String PER_UPLOAD_BYTES_LENGTH = "per_upload_bytes_length";
+        /**
+         * 文件上传过程中，由于网络原因导致字节错误的最大重试次数，默认3次
+         */
+        String FILE_CONTENT_BROKER_MAX_RETRY_TIMES="file_content_broker_max_retry_times";
     }
 }

@@ -1,5 +1,6 @@
 package config;
 
+import cons.BusinessConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,12 +13,25 @@ import java.util.Properties;
 /**
  * 持久化保存的内容
  */
-public class ConfigData {
+public class ConfigDataHelper {
     /**
      * 配置文件路径
      */
     private static final String STORE_CONFIG_DATA_PATH = System.getProperty("store.properties", "store.properties");
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigData.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDataHelper.class);
+
+    static {
+        loadConfigData();
+    }
+
+    public static void loadConfigData() {
+        try {
+            saveStoreConfigData(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(102400)));
+            saveStoreConfigData(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(3)));
+        } catch (IOException e) {
+            throw new RuntimeException("failed to load config");
+        }
+    }
 
     public static synchronized void saveStoreConfigData(String key, String configData) throws IOException {
         File storeFile = new File(STORE_CONFIG_DATA_PATH);

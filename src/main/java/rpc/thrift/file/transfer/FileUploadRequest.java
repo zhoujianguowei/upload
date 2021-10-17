@@ -1160,16 +1160,6 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
             sb.append(this.checkSum);
         }
         first = false;
-        if (isSetContents()) {
-            if (!first) sb.append(", ");
-            sb.append("contents:");
-            if (this.contents == null) {
-                sb.append("null");
-            } else {
-                org.apache.thrift.TBaseHelper.toString(this.contents, sb);
-            }
-            first = false;
-        }
         if (isSetBytesLength()) {
             if (!first) sb.append(", ");
             sb.append("bytesLength:");

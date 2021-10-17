@@ -15,8 +15,8 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 
-import static config.ConfigData.getStoreConfigData;
-import static config.ConfigData.saveStoreConfigData;
+import static config.ConfigDataHelper.getStoreConfigData;
+import static config.ConfigDataHelper.saveStoreConfigData;
 
 /**
  * 辅助工具类
@@ -60,9 +60,9 @@ public class FileHandlerHelper {
      * @param contents
      * @return
      */
-    public static String generateContentsCheckSum(byte[] contents) {
+    public static String generateContentsCheckSum(byte[] contents,int length) {
         CRC32 crc32 = new CRC32();
-        crc32.update(contents);
+        crc32.update(contents,0,length);
         return Long.toHexString(crc32.getValue());
     }
 

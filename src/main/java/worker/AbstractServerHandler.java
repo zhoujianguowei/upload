@@ -4,6 +4,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import common.ErrorMeta;
 import common.FileHandlerHelper;
+import cons.BusinessConstant;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import rpc.thrift.file.transfer.ResResult;
 import java.util.concurrent.TimeUnit;
 
 import static cons.BusinessConstant.FileUploadErrorMsg;
+import static rpc.thrift.file.transfer.FileTypeEnum.FILE_TYPE;
 
 /**
  * 处理文件上传、下载的抽象父类
@@ -23,9 +25,9 @@ import static cons.BusinessConstant.FileUploadErrorMsg;
 public abstract class AbstractServerHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractServerHandler.class);
     /**
-     * 单个文件上传最大允许上传间隔时长，其中{@link FileUploadRequest#identifier}唯一标识
+     * 单个文件上传最大允许上传间隔时长，其中key表示{@link FileUploadRequest#identifier}唯一标识，value表示上传文件结构
      */
-    protected Cache<String, FileUploadRequest> uploadCacheLoader = CacheBuilder.newBuilder().
+    protected Cache<String, CachedUploadFileStructure> uploadCacheLoader = CacheBuilder.newBuilder().
             expireAfterAccess(7, TimeUnit.DAYS).build();
 
     /**
@@ -61,6 +63,10 @@ public abstract class AbstractServerHandler {
             }
             return errorMeta;
         }
+        long totalFileLength = request.getTotalFileLength();
+        if (totalFileLength <= 0) {
+            errorMeta.addErrorMsg(FileUploadErrorMsg.FILE_TOTAL_LENGTH_ERROR);
+        }
         long startPos = request.getStartPos();
         if (startPos < 0) {
             errorMeta.addErrorMsg(FileUploadErrorMsg.FILE_START_POS_ERROR);
@@ -69,25 +75,49 @@ public abstract class AbstractServerHandler {
         if (ArrayUtils.isEmpty(contents)) {
             errorMeta.addErrorMsg(FileUploadErrorMsg.FILE_CONTENTS_EMPTY);
         }
-        int contentLength = request.getBytesLength();
-        if (contentLength > contents.length) {
+        //上传有效字节大小
+        int contentsBytesLength = request.getBytesLength();
+        if (contentsBytesLength > contents.length) {
             errorMeta.addErrorMsg(FileUploadErrorMsg.FILE_BYTES_LENGTH_PARAM_ERROR);
         }
-        String checkSum = request.getCheckSum();
-        if (StringUtils.isBlank(checkSum) || !checkSum.equals(FileHandlerHelper.generateContentsCheckSum(contents))) {
-            errorMeta.addErrorMsg(FileUploadErrorMsg.FILE_CHECK_SUM_VALIDATE_FAILED);
+        if (startPos + contentsBytesLength > request.getTotalFileLength()) {
+            errorMeta.addErrorMsg(FileUploadErrorMsg.FILE_WRITE_BYTES_LENGTH_OVER_FLOW);
         }
-        //首次上传，需要设置文件总大小
-        if (startPos == 0) {
-            if (request.getTotalFileLength() <= 0) {
-                errorMeta.addErrorMsg(FileUploadErrorMsg.FILE_TOTAL_LENGTH_ERROR);
-            }
+        String checkSum = request.getCheckSum();
+        if (StringUtils.isBlank(checkSum) || !checkSum.equals(FileHandlerHelper.generateContentsCheckSum(contents, contentsBytesLength))) {
+            errorMeta.addErrorMsg(FileUploadErrorMsg.FILE_CHECK_SUM_VALIDATE_FAILED);
         }
         return errorMeta;
 
     }
 
     public abstract FileUploadResponse doHandleUploadFile(FileUploadRequest request);
+
+    /***
+     * 构造当前上传的文件基本内容，首次上传的时候设置
+     * @param request
+     * @return
+     */
+    public CachedUploadFileStructure extractCachedFileStructure(FileUploadRequest request) {
+        CachedUploadFileStructure cachedUploadFileStructure = new CachedUploadFileStructure();
+        cachedUploadFileStructure.setSaveParentFolder(request.getSaveParentFolder());
+        cachedUploadFileStructure.setRelativePath(request.getRelativePath());
+        cachedUploadFileStructure.setFileName(request.getFileName());
+        cachedUploadFileStructure.setFileIdentifier(request.getIdentifier());
+        cachedUploadFileStructure.setFileTypeEnum(request.getFileType());
+        long currentTimeInMillis = System.currentTimeMillis();
+        cachedUploadFileStructure.setUploadStartDate(currentTimeInMillis);
+        cachedUploadFileStructure.setCachedFileOffset(0L);
+        //当前上传的是文件，需要设置文件总大小
+        if (request.getFileType() == FILE_TYPE) {
+            cachedUploadFileStructure.setFileBytesLength(request.totalFileLength);
+            cachedUploadFileStructure.setTmpFileName(request.getFileName() + BusinessConstant.TMP_UPLOAD_FILE_NAME_SUFFIX);
+            if (request.isEncrypted() && request.getEncryptedType() != null) {
+                cachedUploadFileStructure.setEncryptTypeEnum(request.getEncryptedType());
+            }
+        }
+        return cachedUploadFileStructure;
+    }
 
     public final FileUploadResponse handleUploadFile(FileUploadRequest request, String token) {
         LOGGER.debug("upload file param||request={}||token={}", request, token);
@@ -99,14 +129,20 @@ public abstract class AbstractServerHandler {
         errorMeta.combine(validateRequestParam(request));
         if (!errorMeta.isLegal()) {
             response.setUploadStatusResult(ResResult.FILE_PARAM_VALIDATION_FAIL);
+            if (errorMeta.getAllErrorMsgList().contains(FileUploadErrorMsg.FILE_CHECK_SUM_VALIDATE_FAILED)) {
+                LOGGER.warn("file upload content changed");
+                response.setUploadStatusResult(ResResult.FILE_BROKEN);
+            }
             response.setErrorMsg(errorMeta.getDefaultErrorMsg());
             LOGGER.error("param or token failed to validate||request={}||token={}||errorMsgInfo={}", request, token, errorMeta.getDefaultErrorMsg());
             return response;
         }
-        synchronized (this) {
-            //首次传输，记录文件信息，包括文件名、文件大小、文件类型等
-            if (uploadCacheLoader.getIfPresent(request.getIdentifier()) == null) {
-                uploadCacheLoader.put(request.getIdentifier(), request);
+        if (uploadCacheLoader.getIfPresent(request.getIdentifier()) == null) {
+            synchronized (this) {
+                //首次传输，记录文件信息，包括文件名、文件大小、文件类型等
+                if (uploadCacheLoader.getIfPresent(request.getIdentifier()) == null) {
+                    uploadCacheLoader.put(request.getIdentifier(), extractCachedFileStructure(request));
+                }
             }
         }
 

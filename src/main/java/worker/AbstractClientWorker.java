@@ -2,13 +2,15 @@ package worker;
 
 import common.ClientUploadStatus;
 import common.FileHandlerHelper;
+import config.ConfigDataHelper;
+import cons.BusinessConstant;
 import cons.CommonConstant;
 import handler.ClientUploadManager;
+import handler.UploadFileCallBack;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTransferWorker;
@@ -18,23 +20,31 @@ import rpc.thrift.file.transfer.FileUploadResponse;
 import rpc.thrift.file.transfer.ResResult;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import static rpc.thrift.file.transfer.ResResult.FILE_END;
 
 /**
  * 客户端处理文件上传、下载服务类
  */
-public class AbstractClientWorker {
+public abstract class AbstractClientWorker {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractClientWorker.class);
-    private ClientUploadManager clientUploadManager;
+    protected ClientUploadManager clientUploadManager;
+    protected UploadFileCallBack uploadFileCallBack;
 
-    public AbstractClientWorker(ClientUploadManager clientUploadManager) {
-        this.clientUploadManager = clientUploadManager;
+
+    public UploadFileCallBack getUploadFileCallBack() {
+        return uploadFileCallBack;
     }
 
-    protected FileUploadRequest constructFileUploadRequest(String saveParentPath, String relativePath, File file) {
+    public void setUploadFileCallBack(UploadFileCallBack uploadFileCallBack) {
+        this.uploadFileCallBack = uploadFileCallBack;
+    }
+
+    protected FileUploadRequest constructFileUploadRequest(String saveParentPath, String relativePath, File file, long startPos, RandomAccessFile accessFile) throws IOException {
         FileUploadRequest request = new FileUploadRequest();
         request.setFileName(file.getName());
         request.setSaveParentFolder(saveParentPath);
@@ -47,7 +57,16 @@ public class AbstractClientWorker {
             request.setCheckSum("0L");
         } else {
             request.setIdentifier(FileHandlerHelper.generateUniqueIdentifier(wholeFilePath + CommonConstant.UNDERLINE + file.length()));
-            //#todo
+            request.setFileType(FileTypeEnum.FILE_TYPE);
+            request.setStartPos(startPos);
+            request.setTotalFileLength(file.length());
+            int perUploadSegmentLength = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH));
+            byte[] segmentContents = new byte[perUploadSegmentLength];
+            accessFile.seek(startPos);
+            int readBytesLength = accessFile.read(segmentContents);
+            request.setContents(segmentContents);
+            request.setBytesLength(readBytesLength);
+            request.setCheckSum(FileHandlerHelper.generateContentsCheckSum(segmentContents, readBytesLength));
         }
         return request;
     }
@@ -57,34 +76,12 @@ public class AbstractClientWorker {
      *
      * @param saveParentPath
      * @param relativePath
-     * @param rootFile
+     * @param uploadSingleFileOrDir
      * @param client
      * @return
      */
-    public ClientUploadStatus doUploadSingleFile(String saveParentPath, String relativePath, File rootFile, FileTransferWorker.Client client) {
-        FileUploadRequest fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, rootFile);
-        try {
-            FileUploadResponse fileUploadResponse = client.uploadFile(fileUploadRequest, FileHandlerHelper.generateFileToken(rootFile.getName()));
-            if (fileUploadResponse.getUploadStatusResult() != ResResult.FILE_END) {
-                LOGGER.warn("failed to upload file||response={}", fileUploadResponse);
-                return ClientUploadStatus.FAIL;
-            }
-        } catch (TException e) {
-            LOGGER.error("thrift exception", e);
-            return ClientUploadStatus.FAIL;
-        }
-        return ClientUploadStatus.UPLOAD_FINISH;
-    }
+    public abstract ClientUploadStatus doUploadSingleFile(String saveParentPath, String relativePath, File uploadSingleFileOrDir, FileTransferWorker.Client client);
 
-    /**
-     * 当前主机产生唯一标识
-     *
-     * @param remoteHost
-     * @return
-     */
-    protected String generateUniqueHostIdentifier(String remoteHost) {
-        return FileHandlerHelper.getDeviceUniqueIdentifier();
-    }
 
     /**
      * 文件或者文件夹上传上传

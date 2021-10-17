@@ -21,7 +21,7 @@ public class FileTransferServiceImpl implements FileTransferWorker.AsyncIface {
 
     @Override
     public void uploadFile(FileUploadRequest request, String token, AsyncMethodCallback<FileUploadResponse> resultHandler) throws TException {
-        AbstractServerHandler abstractServerHandler = new DefaultServerHandler();
+        AbstractServerHandler abstractServerHandler = DefaultServerHandler.getSingleTon();
         FileUploadResponse uploadResponse = abstractServerHandler.handleUploadFile(request, token);
         resultHandler.onComplete(uploadResponse);
     }

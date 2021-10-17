@@ -1,15 +1,17 @@
 package rpc.thrift.file.service;
 
+import handler.DefaultUploadProgressCallBack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import worker.AbstractClientWorker;
+import worker.DefaultClientWorker;
 
 import java.io.File;
 
 public class AsyncFileTransferClient {
 
 
-    private static final int CONNECTION_TIME_OUT = 5000;
+    private static final int CONNECTION_TIME_OUT = 500000;
     private volatile boolean connectionOpen = false;
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncFileTransferClient.class);
 
@@ -25,7 +27,8 @@ public class AsyncFileTransferClient {
         if (!file.exists() || !file.canRead() || !file.canExecute()) {
             throw new IllegalArgumentException(String.format("path %s not exits or can't execute", filePath));
         }
-        AbstractClientWorker clientWorker = new AbstractClientWorker(null);
+        AbstractClientWorker clientWorker = DefaultClientWorker.getSingleTon();
+        clientWorker.setUploadFileCallBack(new DefaultUploadProgressCallBack());
         clientWorker.clientUploadFile("d:/cpTest", file, host, AsyncFileTransferServer.FILE_HANDLER_SERVER_PORT, CONNECTION_TIME_OUT);
     }
 
