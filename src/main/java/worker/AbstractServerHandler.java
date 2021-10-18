@@ -27,7 +27,7 @@ public abstract class AbstractServerHandler {
     /**
      * 单个文件上传最大允许上传间隔时长，其中key表示{@link FileUploadRequest#identifier}唯一标识，value表示上传文件结构
      */
-    protected Cache<String, CachedUploadFileStructure> uploadCacheLoader = CacheBuilder.newBuilder().
+    protected Cache<String, CachedUploadFileStructure> uploadProgressCacheLoader = CacheBuilder.newBuilder().
             expireAfterAccess(7, TimeUnit.DAYS).build();
 
     /**
@@ -137,11 +137,11 @@ public abstract class AbstractServerHandler {
             LOGGER.error("param or token failed to validate||request={}||token={}||errorMsgInfo={}", request, token, errorMeta.getDefaultErrorMsg());
             return response;
         }
-        if (uploadCacheLoader.getIfPresent(request.getIdentifier()) == null) {
+        if (uploadProgressCacheLoader.getIfPresent(request.getIdentifier()) == null) {
             synchronized (this) {
                 //首次传输，记录文件信息，包括文件名、文件大小、文件类型等
-                if (uploadCacheLoader.getIfPresent(request.getIdentifier()) == null) {
-                    uploadCacheLoader.put(request.getIdentifier(), extractCachedFileStructure(request));
+                if (uploadProgressCacheLoader.getIfPresent(request.getIdentifier()) == null) {
+                    uploadProgressCacheLoader.put(request.getIdentifier(), extractCachedFileStructure(request));
                 }
             }
         }

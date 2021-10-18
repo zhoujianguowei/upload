@@ -1,12 +1,9 @@
 package worker;
 
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import common.ClientUploadStatus;
 import common.FileHandlerHelper;
 import config.ConfigDataHelper;
 import cons.BusinessConstant;
-import handler.ClientUploadManager;
-import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTransferWorker;

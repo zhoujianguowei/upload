@@ -1,7 +1,10 @@
 package worker;
 
 import common.FileHandlerHelper;
+import common.ThreadPoolManager;
+import config.UploadProgressHelper;
 import cons.CommonConstant;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,10 @@ import rpc.thrift.file.transfer.ResResult;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -20,12 +27,35 @@ import java.util.regex.Pattern;
  */
 public class DefaultServerHandler extends AbstractServerHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultServerHandler.class);
+    private ScheduledExecutorService syncUploadProgressScheduler = ThreadPoolManager.getSyncClientUploadProgressScheduler();
 
     private static class InnerInstance {
         static DefaultServerHandler instance = new DefaultServerHandler();
     }
 
     private DefaultServerHandler() {
+        loadUploadProgress();
+        syncUploadProgressScheduler.scheduleAtFixedRate(() -> syncUploadProgress(), 5, 10, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 加载文件上传进度
+     */
+    protected synchronized void loadUploadProgress() {
+        List<CachedUploadFileStructure> cachedUploadFileStructureList = UploadProgressHelper.loadUploadProgressData();
+        if (CollectionUtils.isEmpty(cachedUploadFileStructureList)) {
+            LOGGER.info("no upload progress,don't need to load");
+        }
+        for (CachedUploadFileStructure cachedUploadFileStructure : cachedUploadFileStructureList) {
+            uploadProgressCacheLoader.put(cachedUploadFileStructure.getFileIdentifier(), cachedUploadFileStructure);
+        }
+        LOGGER.info("load upload progress success");
+    }
+
+    protected synchronized void syncUploadProgress() {
+        List<CachedUploadFileStructure> cachedUploadFileStructures = new ArrayList<>(uploadProgressCacheLoader.asMap().values());
+        UploadProgressHelper.persistUploadProgressData(cachedUploadFileStructures);
+        LOGGER.info("sync upload progress success");
     }
 
     public static DefaultServerHandler getSingleTon() {
@@ -107,22 +137,22 @@ public class DefaultServerHandler extends AbstractServerHandler {
      */
     protected FileUploadResponse handleUploadFile(File parentFileFolder, FileUploadRequest request) {
         FileUploadResponse response = new FileUploadResponse();
-        CachedUploadFileStructure cachedUploadFileStructure = uploadCacheLoader.getIfPresent(request.getIdentifier());
-        RandomAccessFile tmpAccessFile = cachedUploadFileStructure.getRandomAccessFile();
+        CachedUploadFileStructure cachedUploadFileStructure = uploadProgressCacheLoader.getIfPresent(request.getIdentifier());
+        RandomAccessFile randomAccessFile = cachedUploadFileStructure.getRandomAccessFile();
         File tmpFile;
         if (parentFileFolder == null) {
             tmpFile = new File(cachedUploadFileStructure.getTmpFileName());
         } else {
             tmpFile = new File(parentFileFolder, cachedUploadFileStructure.getTmpFileName());
         }
-        //首次上传
-        if (tmpAccessFile == null) {
+        //首次上传或者是从离线日志中同步
+        if (randomAccessFile == null) {
             synchronized (this) {
                 try {
-                    if (tmpAccessFile == null) {
-                        tmpAccessFile = new RandomAccessFile(tmpFile, "rwd");
+                    if (randomAccessFile == null) {
+                        randomAccessFile = new RandomAccessFile(tmpFile, "rwd");
                     }
-                    cachedUploadFileStructure.setRandomAccessFile(tmpAccessFile);
+                    cachedUploadFileStructure.setRandomAccessFile(randomAccessFile);
                 } catch (Exception e) {
                     LOGGER.error("failed to create tmp file", e);
                     throw new RuntimeException("failed to create tmp file");
@@ -136,31 +166,33 @@ public class DefaultServerHandler extends AbstractServerHandler {
             return response;
         }
         try {
-            tmpAccessFile.seek(request.startPos);
+            randomAccessFile.seek(request.startPos);
             byte[] segmentContents = request.getContents();
             int segmentBytesLength = request.getBytesLength();
-            tmpAccessFile.write(segmentContents, 0, segmentBytesLength);
+            randomAccessFile.write(segmentContents, 0, segmentBytesLength);
             long nextPos = request.getStartPos() + segmentBytesLength;
             //更新上传进度
             cachedUploadFileStructure.setCachedFileOffset(nextPos);
             response.setNextPos(nextPos);
             //文件上传完成
             if (request.getStartPos() + segmentBytesLength == cachedUploadFileStructure.getFileBytesLength()) {
-                tmpAccessFile.close();
+                randomAccessFile.close();
                 //文件重命名
                 File realFile = new File(tmpFile.getParent(), cachedUploadFileStructure.getFileName());
                 if (!tmpFile.renameTo(realFile)) {
                     LOGGER.warn("failed to rename file||tmpFilePath={}||realFilePath={}", tmpFile.getAbsolutePath(), realFile.getAbsoluteFile());
                 }
                 response.setUploadStatusResult(ResResult.FILE_END);
+                //清除缓存的上传文件进度信息
+                uploadProgressCacheLoader.invalidate(request.getIdentifier());
             } else {
                 response.setUploadStatusResult(ResResult.SUCCESS);
             }
         } catch (IOException e) {
             LOGGER.error("failed to write file", e);
-            if (tmpAccessFile != null) {
+            if (randomAccessFile != null) {
                 try {
-                    tmpAccessFile.close();
+                    randomAccessFile.close();
                 } catch (IOException e1) {
                     LOGGER.error("io exception", e);
                 }

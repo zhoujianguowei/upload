@@ -15,11 +15,12 @@ public class CachedUploadFileStructure {
     private String fileIdentifier;
     private Long fileBytesLength;
     private EncryptTypeEnum encryptTypeEnum;
-    private RandomAccessFile randomAccessFile;
+    private transient RandomAccessFile randomAccessFile;
     /**
      * 临时保存的文件名
      */
     private String tmpFileName;
+
     public String getFileName() {
         return fileName;
     }
