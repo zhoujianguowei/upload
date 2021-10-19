@@ -11,8 +11,7 @@ import java.io.File;
 public class AsyncFileTransferClient {
 
 
-    private static final int CONNECTION_TIME_OUT = 500000;
-    private volatile boolean connectionOpen = false;
+    private static final int CONNECTION_TIME_OUT = 50000;
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncFileTransferClient.class);
 
 

@@ -11,9 +11,12 @@ public class ThreadPoolManager {
      * 同步文件上传进度
      */
     private static final ScheduledExecutorService syncClientUploadProgressScheduler = Executors.newSingleThreadScheduledExecutor();
-
+    private static final ScheduledExecutorService measureUploadRateScheduler=Executors.newSingleThreadScheduledExecutor();
     public static ScheduledExecutorService getSyncClientUploadProgressScheduler() {
         return syncClientUploadProgressScheduler;
+    }
+    public static ScheduledExecutorService getMeasureUploadRateScheduler(){
+        return measureUploadRateScheduler;
     }
 
 
