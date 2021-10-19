@@ -260,6 +260,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
         }
         if (targetFileExists(parentFile == null ? null : parentFile.getAbsolutePath(), request)) {
             response.setUploadStatusResult(ResResult.FILE_END);
+            uploadProgressCacheLoader.invalidate(request.getIdentifier());
             return response;
         }
 
