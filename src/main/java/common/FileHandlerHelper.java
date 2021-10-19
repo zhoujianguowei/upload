@@ -2,16 +2,20 @@ package common;
 
 import cons.BusinessConstant;
 import cons.CommonConstant;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTypeEnum;
 import rpc.thrift.file.transfer.FileUploadRequest;
 
+import javax.print.attribute.standard.ReferenceUriSchemesSupported;
 import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
@@ -198,27 +202,34 @@ public class FileHandlerHelper {
         return IDENTIFIER_PREFIX + CommonConstant.UNDERLINE + doMd5Digest(absoluteFilePath) + CommonConstant.UNDERLINE + doMd5Digest(hostIdentifier);
     }
 
-    public static <T> ArrayList<ArrayList<T>> splitList(ArrayList<T> source, int n) {
+    /**
+     * 将资源平均划分到splitNumber份
+     *
+     * @param source
+     * @param splitNumber
+     * @param <T>
+     * @return
+     */
+    public static <T> List<List<T>> splitList(List<T> source, int splitNumber) {
 
-        if (null == source || source.size() == 0 || n <= 0)
-            return null;
-
-        ArrayList<ArrayList<T>> result = new ArrayList<>();
-        int sourceSize = source.size();
-        int size;
-        if (source.size() % n == 0) {
-            size = source.size() / n;
-        } else {
-            size = (source.size() / n) + 1;
+        if (CollectionUtils.isEmpty(source) || splitNumber <= 0) {
+            return new ArrayList<>();
         }
-        for (int i = 0; i < size; i++) {
-            ArrayList<T> subset = new ArrayList<>();
-            for (int j = i * n; j < (i + 1) * n; j++) {
-                if (j < sourceSize) {
-                    subset.add(source.get(j));
-                }
+        int totalSize = source.size();
+        //每个子列表分到的资源个数
+        int perSubListSize = totalSize / splitNumber;
+        if (totalSize % splitNumber != 0) {
+            perSubListSize++;
+        }
+        List<List<T>> result = new ArrayList<>();
+        int index = 0;
+        for (int i = 0; i < splitNumber; i++) {
+            ArrayList<T> subList = new ArrayList<>();
+            for (int j = index; j < index + perSubListSize && j < totalSize; j++) {
+                subList.add(source.get(j));
             }
-            result.add(subset);
+            index += perSubListSize;
+            result.add(subList);
         }
         return result;
     }

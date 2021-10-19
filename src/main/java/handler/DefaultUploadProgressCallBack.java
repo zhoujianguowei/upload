@@ -10,6 +10,7 @@ import rpc.thrift.file.transfer.FileTypeEnum;
 
 import java.text.DecimalFormat;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -24,9 +25,10 @@ public class DefaultUploadProgressCallBack implements UploadFileCallBack {
     private ScheduledExecutorService measureUploadRateScheduler = ThreadPoolManager.getMeasureUploadRateScheduler();
     private static final DecimalFormat PROGRESS_DECIMAL_FORMAT = new DecimalFormat("0.00%");
     private static final Long PER_KB_BYTES = 1024L;
+    private Future future;
 
     public DefaultUploadProgressCallBack() {
-        measureUploadRateScheduler.scheduleAtFixedRate(this::printUploadRateInfo, 1, 1, TimeUnit.SECONDS);
+        future = measureUploadRateScheduler.scheduleAtFixedRate(this::printUploadRateInfo, 1, 1, TimeUnit.SECONDS);
     }
 
     public void printUploadRateInfo() {
