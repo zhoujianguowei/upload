@@ -54,7 +54,7 @@ public class RemoteRpcNode {
                 client = new FileTransferWorker.Client(protocol);
                 transport.open();
                 connectionAlive = true;
-            } catch (TTransportException e) {
+            } catch (Exception e) {
                 LOGGER.error("failed to create remote connection", e);
             }
         }
@@ -72,14 +72,18 @@ public class RemoteRpcNode {
         if (!connectionAlive) {
             return;
         }
-        connectionAlive = false;
-        if (transport != null && transport.isOpen()) {
-            transport.close();
-            tSocket = null;
-        }
-        if (tSocket != null && tSocket.isOpen()) {
-            tSocket.close();
-            tSocket = null;
+        try {
+            connectionAlive = false;
+            if (transport != null && transport.isOpen()) {
+                transport.close();
+                tSocket = null;
+            }
+            if (tSocket != null && tSocket.isOpen()) {
+                tSocket.close();
+                tSocket = null;
+            }
+        } catch (Exception e) {
+            LOGGER.error("exception when to release connection", e);
         }
     }
 

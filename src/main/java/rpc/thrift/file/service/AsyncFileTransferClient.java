@@ -28,11 +28,11 @@ public class AsyncFileTransferClient {
         }
         AbstractClientWorker clientWorker = DefaultClientWorker.getSingleTon();
         clientWorker.setUploadFileCallBack(new DefaultUploadProgressCallBack());
-        clientWorker.clientUploadFile("d:/cpTest", file, host, AsyncFileTransferServer.FILE_HANDLER_SERVER_PORT, CONNECTION_TIME_OUT);
+        clientWorker.clientUploadFile("d:/oop", file, host, AsyncFileTransferServer.FILE_HANDLER_SERVER_PORT, CONNECTION_TIME_OUT);
     }
 
     public static void main(String[] args) {
         System.out.println("async client start");
-        uploadFile("d:/test", "localhost");
+        uploadFile("d:/StudyProgramFiles", "localhost");
     }
 }

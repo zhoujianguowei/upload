@@ -2,6 +2,7 @@ package worker;
 
 import common.ClientUploadStatus;
 import common.FileHandlerHelper;
+import common.ThreadPoolManager;
 import config.ConfigDataHelper;
 import cons.BusinessConstant;
 import cons.CommonConstant;
@@ -16,16 +17,16 @@ import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTransferWorker;
 import rpc.thrift.file.transfer.FileTypeEnum;
 import rpc.thrift.file.transfer.FileUploadRequest;
-import rpc.thrift.file.transfer.FileUploadResponse;
-import rpc.thrift.file.transfer.ResResult;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import static rpc.thrift.file.transfer.ResResult.FILE_END;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 客户端处理文件上传、下载服务类
@@ -34,7 +35,7 @@ public abstract class AbstractClientWorker {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractClientWorker.class);
     protected ClientUploadManager clientUploadManager;
     protected UploadFileCallBack uploadFileCallBack;
-
+    protected ExecutorService parallelUploadExecutor = ThreadPoolManager.getParallelUploadThreadPool();
 
     public UploadFileCallBack getUploadFileCallBack() {
         return uploadFileCallBack;
@@ -82,6 +83,32 @@ public abstract class AbstractClientWorker {
      */
     public abstract ClientUploadStatus doUploadSingleFile(String saveParentPath, String relativePath, File uploadSingleFileOrDir, FileTransferWorker.Client client);
 
+    /**
+     * 连接探活
+     *
+     * @param remoteHost
+     * @param remotePort
+     * @param connectionTimeout
+     * @return
+     */
+
+    public boolean detectConnection(String remoteHost, int remotePort, int connectionTimeout) {
+        RemoteRpcNode remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
+        boolean createConn = remoteRpcNode.createRemoteConnectionIfNotExists();
+        if (!createConn) {
+            LOGGER.warn("failed to create remote connection||host={}||port={}", remoteHost, remotePort);
+            return false;
+        }
+        remoteRpcNode.destroyConnection();
+        return true;
+    }
+
+    /**
+     * 释放资源，比如连接、线程池
+     */
+    protected void releaseSource() {
+        ThreadPoolManager.shutdownCientThreadPool();
+    }
 
     /**
      * 文件或者文件夹上传上传
@@ -96,44 +123,66 @@ public abstract class AbstractClientWorker {
         if (!file.exists() || !file.canExecute()) {
             throw new RuntimeException("file path not exists or no execute permission");
         }
-        RemoteRpcNode remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
-        boolean createConn = remoteRpcNode.createRemoteConnectionIfNotExists();
-        if (!createConn) {
-            LOGGER.warn("failed to create remote connection||host={}||port={}", remoteHost, remotePort);
+        if (!detectConnection(remoteHost, remotePort, connectionTimeout)) {
             return;
         }
-        Collection<File> fileLists = new ArrayList<>();
-        if (!file.isDirectory()) {
-            fileLists.add(file);
-        } else {
-            fileLists = FileUtils.listFilesAndDirs(file, TrueFileFilter.TRUE, DirectoryFileFilter.DIRECTORY);
-        }
+        Collection<File> fileLists = FileUtils.listFilesAndDirs(file, TrueFileFilter.TRUE, DirectoryFileFilter.DIRECTORY);
+        //并发上传文件数量
+        int maxParallelUploadFileNum = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM));
         String rootPath = file.getAbsolutePath();
         //根目录或者文件路径
         String rootFileName = file.getName();
         String parentFilePath = StringUtils.isBlank(file.getParent()) ? "" : file.getParent();
-        for (File uploadFile : fileLists) {
-            if (uploadFile.isFile() && uploadFile.length() <= 0L) {
-                LOGGER.warn("file lack content,ignore||filePath={}", uploadFile.getAbsolutePath());
-                continue;
-            }
-            FileTransferWorker.Client client = remoteRpcNode.getRemoteClient();
-            String fileAbsolutePath = uploadFile.getAbsolutePath();
-            //获取相对于根目录的相对路径,比如当前根目录是d:/test，对应子目录是d:/test/nice/mv.mp4，那么相对路径就是test/nice
-            String relativePath = null;
-            if (fileAbsolutePath.length() > rootPath.length()) {
-                //相对路径
-                int rootFilePathSplit = rootFileName.indexOf(parentFilePath) + parentFilePath.length() + 1;
-                relativePath = uploadFile.getParent().substring(rootFilePathSplit);
-            }
-            ClientUploadStatus clientUploadStatus = doUploadSingleFile(saveParentPath, relativePath, uploadFile, client);
-            if (clientUploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
-                LOGGER.warn("file {} upload failed", fileAbsolutePath);
-            } else {
-                LOGGER.info("file {} upload success", fileAbsolutePath);
-            }
+        List<List<File>> splitFileArrayList = FileHandlerHelper.splitList(new ArrayList(fileLists), maxParallelUploadFileNum);
+        CountDownLatch countDownLatch = new CountDownLatch(maxParallelUploadFileNum);
+        for (List<File> subFileList : splitFileArrayList) {
+            parallelUploadExecutor.execute(() -> {
+                RemoteRpcNode remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
+                try {
+                    if (!remoteRpcNode.createRemoteConnectionIfNotExists()) {
+                        return;
+                    }
+                    for (File uploadFile : subFileList) {
+                        if (uploadFile.isFile() && uploadFile.length() <= 0L) {
+                            LOGGER.warn("file lack content,ignore||filePath={}", uploadFile.getAbsolutePath());
+                            continue;
+                        }
+                        FileTransferWorker.Client client = remoteRpcNode.getRemoteClient();
+                        String fileAbsolutePath = uploadFile.getAbsolutePath();
+                        //获取相对于根目录的相对路径,比如当前根目录是d:/test，对应子目录是d:/test/nice/mv.mp4，那么相对路径就是test/nice
+                        String relativePath = null;
+                        if (fileAbsolutePath.length() > rootPath.length()) {
+                            //相对路径
+                            int rootFilePathSplit = rootFileName.indexOf(parentFilePath) + parentFilePath.length() + 1;
+                            relativePath = uploadFile.getParent().substring(rootFilePathSplit);
+                        }
+                        ClientUploadStatus clientUploadStatus = doUploadSingleFile(saveParentPath, relativePath, uploadFile, client);
+                        if (clientUploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
+                            LOGGER.warn("file {} upload failed", fileAbsolutePath);
+                        } else {
+                            LOGGER.info("file {} upload success", fileAbsolutePath);
+                        }
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("exception when upload", e);
+                } finally {
+                    if (remoteRpcNode != null) {
+                        remoteRpcNode.destroyConnection();
+                    }
+                    LOGGER.info("release countdown lock");
+                    countDownLatch.countDown();
+                }
+            });
         }
-        remoteRpcNode.destroyConnection();
+        try {
+            LOGGER.info("main thread is wait upload finish");
+            countDownLatch.await();
+            LOGGER.info("upload finish");
+        } catch (InterruptedException e) {
+            LOGGER.error("interrupted exception", e);
+        } finally {
+            releaseSource();
+        }
     }
 
 }

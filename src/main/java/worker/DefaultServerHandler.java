@@ -125,6 +125,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
             }
         }
         fileUploadResponse.setUploadStatusResult(ResResult.FILE_END);
+        uploadProgressCacheLoader.invalidate(request.getIdentifier());
         return fileUploadResponse;
     }
 

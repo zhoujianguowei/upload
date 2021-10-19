@@ -28,6 +28,7 @@ public class ConfigDataHelper {
         try {
             saveStoreConfigData(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(102400)));
             saveStoreConfigData(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(3)));
+            saveStoreConfigData(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(5)));
         } catch (IOException e) {
             throw new RuntimeException("failed to load config");
         }

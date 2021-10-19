@@ -140,4 +140,10 @@ public class DefaultClientWorker extends AbstractClientWorker {
         }
         return uploadStatus;
     }
+
+    @Override
+    protected void releaseSource() {
+        super.releaseSource();
+
+    }
 }

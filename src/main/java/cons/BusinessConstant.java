@@ -39,6 +39,10 @@ public class BusinessConstant {
         /**
          * 文件上传过程中，由于网络原因导致字节错误的最大重试次数，默认3次
          */
-        String FILE_CONTENT_BROKER_MAX_RETRY_TIMES="file_content_broker_max_retry_times";
+        String FILE_CONTENT_BROKER_MAX_RETRY_TIMES = "file_content_broker_max_retry_times";
+        /**
+         * 批量上传的最大文件个数，默认5个
+         */
+        String MAX_PARALLEL_UPDATE_FILE_NUM = "max_parallel_upload_file_num";
     }
 }

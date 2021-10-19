@@ -11,6 +11,7 @@ import rpc.thrift.file.transfer.FileUploadRequest;
 import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
@@ -60,9 +61,9 @@ public class FileHandlerHelper {
      * @param contents
      * @return
      */
-    public static String generateContentsCheckSum(byte[] contents,int length) {
+    public static String generateContentsCheckSum(byte[] contents, int length) {
         CRC32 crc32 = new CRC32();
-        crc32.update(contents,0,length);
+        crc32.update(contents, 0, length);
         return Long.toHexString(crc32.getValue());
     }
 
@@ -195,6 +196,31 @@ public class FileHandlerHelper {
      */
     public static String generateUniqueIdentifier(String absoluteFilePath, String hostIdentifier) {
         return IDENTIFIER_PREFIX + CommonConstant.UNDERLINE + doMd5Digest(absoluteFilePath) + CommonConstant.UNDERLINE + doMd5Digest(hostIdentifier);
+    }
+
+    public static <T> ArrayList<ArrayList<T>> splitList(ArrayList<T> source, int n) {
+
+        if (null == source || source.size() == 0 || n <= 0)
+            return null;
+
+        ArrayList<ArrayList<T>> result = new ArrayList<>();
+        int sourceSize = source.size();
+        int size;
+        if (source.size() % n == 0) {
+            size = source.size() / n;
+        } else {
+            size = (source.size() / n) + 1;
+        }
+        for (int i = 0; i < size; i++) {
+            ArrayList<T> subset = new ArrayList<>();
+            for (int j = i * n; j < (i + 1) * n; j++) {
+                if (j < sourceSize) {
+                    subset.add(source.get(j));
+                }
+            }
+            result.add(subset);
+        }
+        return result;
     }
 
 }

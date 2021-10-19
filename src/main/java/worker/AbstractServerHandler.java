@@ -119,6 +119,13 @@ public abstract class AbstractServerHandler {
         return cachedUploadFileStructure;
     }
 
+    /**
+     * hook方式，释放资源，常见连接池
+     */
+    public void releaseResource() {
+
+    }
+
     public final FileUploadResponse handleUploadFile(FileUploadRequest request, String token) {
         LOGGER.debug("upload file param||request={}||token={}", request, token);
         ErrorMeta<String> errorMeta = new ErrorMeta<>();
