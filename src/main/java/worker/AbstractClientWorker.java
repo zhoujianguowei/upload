@@ -126,7 +126,12 @@ public abstract class AbstractClientWorker {
         if (!detectConnection(remoteHost, remotePort, connectionTimeout)) {
             return;
         }
-        Collection<File> fileLists = FileUtils.listFilesAndDirs(file, TrueFileFilter.TRUE, DirectoryFileFilter.DIRECTORY);
+        Collection<File> fileLists = new ArrayList<>();
+        if (file.isFile()) {
+            fileLists.add(file);
+        } else {
+            fileLists = FileUtils.listFilesAndDirs(file, TrueFileFilter.TRUE, DirectoryFileFilter.DIRECTORY);
+        }
         //并发上传文件数量
         int maxParallelUploadFileNum = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM));
         String rootPath = file.getAbsolutePath();
