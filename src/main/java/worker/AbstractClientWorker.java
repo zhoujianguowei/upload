@@ -31,6 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 /**
  * 客户端处理文件上传、下载服务类
@@ -184,7 +185,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                         if (fileAbsolutePath.length() > rootPath.length()) {
                             //相对路径
                             int rootFilePathSplit = rootFileName.indexOf(parentFilePath) + parentFilePath.length() + 1;
-                            relativePath = uploadFile.getParent().substring(rootFilePathSplit);
+                            relativePath = uploadFile.getParent().substring(rootFilePathSplit).replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR);
                         }
                         ClientUploadStatus clientUploadStatus = doUploadSingleFile(saveParentPath, relativePath, uploadFile, client);
                         if (clientUploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
