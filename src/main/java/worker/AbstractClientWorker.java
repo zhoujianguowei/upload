@@ -6,12 +6,12 @@ import common.ThreadPoolManager;
 import config.ConfigDataHelper;
 import cons.BusinessConstant;
 import cons.CommonConstant;
-import handler.ClientUploadManager;
-import handler.UploadFileCallBack;
+import handler.AbstractUploadFileProgressCallback;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.thrift.util.ExecutorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTransferWorker;
@@ -26,23 +26,23 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 客户端处理文件上传、下载服务类
  */
-public abstract class AbstractClientWorker {
+public abstract class AbstractClientWorker extends AbstractUploadFileProgressCallback {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractClientWorker.class);
-    protected ClientUploadManager clientUploadManager;
-    protected UploadFileCallBack uploadFileCallBack;
-    protected ExecutorService parallelUploadExecutor = ThreadPoolManager.getParallelUploadThreadPool();
+    protected ExecutorService parallelUploadExecutor = ThreadPoolManager.getClientParallelUploadFileNumExecutorService();
 
-    public UploadFileCallBack getUploadFileCallBack() {
-        return uploadFileCallBack;
+    public AbstractClientWorker(String terminalType) {
+        super(terminalType);
     }
 
-    public void setUploadFileCallBack(UploadFileCallBack uploadFileCallBack) {
-        this.uploadFileCallBack = uploadFileCallBack;
+    /**
+     * 客户端处理完成之后，释放资源
+     */
+    public void shutdown() {
+        ExecutorUtil.gracefulShutdown(parallelUploadExecutor, 1000);
     }
 
     protected FileUploadRequest constructFileUploadRequest(String saveParentPath, String relativePath, File file, long startPos, RandomAccessFile accessFile) throws IOException {
@@ -101,13 +101,6 @@ public abstract class AbstractClientWorker {
         }
         remoteRpcNode.destroyConnection();
         return true;
-    }
-
-    /**
-     * 释放资源，比如连接、线程池
-     */
-    protected void releaseSource() {
-        ThreadPoolManager.shutdownCientThreadPool();
     }
 
     /**
@@ -186,7 +179,7 @@ public abstract class AbstractClientWorker {
         } catch (InterruptedException e) {
             LOGGER.error("interrupted exception", e);
         } finally {
-            releaseSource();
+            shutdown();
         }
     }
 

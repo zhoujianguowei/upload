@@ -21,12 +21,13 @@ import static rpc.thrift.file.transfer.ResResult.FILE_END;
 public class DefaultClientWorker extends AbstractClientWorker {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClientWorker.class);
 
-    private DefaultClientWorker() {
 
+    private DefaultClientWorker(String terminalType) {
+        super(terminalType);
     }
 
     private static class InnerInstance {
-        static DefaultClientWorker outerInstance = new DefaultClientWorker();
+        static DefaultClientWorker outerInstance = new DefaultClientWorker(BusinessConstant.CLIENT_TERMINAL_TYPE);
     }
 
     public static DefaultClientWorker getSingleTon() {
@@ -48,6 +49,7 @@ public class DefaultClientWorker extends AbstractClientWorker {
         //文件传输失败内容错误最大重试次数
         int brokerRetryTimes = 3;
         long preBrokerOffset = -1L;
+        String absoluteFilePath = uploadSingleFileOrDir.getAbsolutePath();
         int maxBrokerRetryTimes = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES));
         while (true) {
             FileUploadResponse uploadResult = client.uploadFile(fileUploadRequest, FileHandlerHelper.generateFileToken(uploadSingleFileOrDir.getName()));
@@ -58,11 +60,8 @@ public class DefaultClientWorker extends AbstractClientWorker {
                 case SUCCESS:
                     startPos = uploadResult.nextPos;
                     fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, uploadSingleFileOrDir, startPos, randomAccessFile);
-                    if (uploadFileCallBack != null) {
-                        uploadFileCallBack.onFileUploadProgress(fileUploadRequest.getIdentifier(), 0L, 0L,
-                                FileHandlerHelper.generateWholePath(saveParentPath, relativePath, uploadSingleFileOrDir.getName()),
-                                fileUploadRequest.getTotalFileLength(), uploadResult.nextPos);
-                    }
+                    onFileUploadProgress(fileUploadRequest.getIdentifier(),
+                            absoluteFilePath, fileUploadRequest.getTotalFileLength(), uploadResult.nextPos);
                     break;
                 case FILE_BROKEN:
                     LOGGER.warn("file upload content broker,retry again");
@@ -131,19 +130,16 @@ public class DefaultClientWorker extends AbstractClientWorker {
                 }
             }
         }
-        if (uploadFileCallBack != null) {
-            if (uploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
-                uploadFileCallBack.onFileUploadFail(fileIdentifier, fileWholePath, fileTypeEnum);
-            } else {
-                uploadFileCallBack.onFileUploadFinish(fileIdentifier, fileWholePath, fileTypeEnum);
-            }
+        if (uploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
+            onFileUploadFail(fileIdentifier, fileWholePath, fileTypeEnum);
+        } else {
+            onFileUploadFinish(fileIdentifier, fileWholePath, fileTypeEnum);
         }
         return uploadStatus;
     }
 
     @Override
-    protected void releaseSource() {
-        super.releaseSource();
-
+    public void shutdown() {
+        super.shutdown();
     }
 }

@@ -159,7 +159,7 @@ public class FileHandlerHelper {
         if (StringUtils.isNotBlank(fileName)) {
             concatPath.append(fileName);
         }
-        return concatPath.toString().replaceAll(Pattern.quote(File.separator), CommonConstant.LINUX_SHELL_SEPARATOR).replaceAll("(" + CommonConstant.LINUX_SHELL_SEPARATOR + ")\\1+", "$1");
+        return concatPath.toString().replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR).replaceAll("(" + CommonConstant.LINUX_SHELL_SEPARATOR + ")\\1+", "$1");
     }
 
     /**

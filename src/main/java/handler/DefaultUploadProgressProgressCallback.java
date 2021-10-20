@@ -3,7 +3,6 @@ package handler;
 import com.google.common.collect.Maps;
 import common.SimpleUploadProgress;
 import common.ThreadPoolManager;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTypeEnum;
@@ -14,20 +13,20 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultUploadProgressCallBack implements UploadFileCallBack {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUploadProgressCallBack.class);
+public class DefaultUploadProgressProgressCallback implements UploadFileProgressCallback {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUploadProgressProgressCallback.class);
     private Map<String, Float> preUploadProcess = Maps.newConcurrentMap();
     /**
      * 用来评估文件上传速度
      */
     private Map<String, SimpleUploadProgress> previousUploadFileBytesLengthMap = Maps.newConcurrentMap();
     private Map<String, SimpleUploadProgress> updateUploadFileBytesLengthMap = Maps.newConcurrentMap();
-    private ScheduledExecutorService measureUploadRateScheduler = ThreadPoolManager.getMeasureUploadRateScheduler();
+    private ScheduledExecutorService measureUploadRateScheduler = ThreadPoolManager.getClientAcquireUploadSpeedScheduler();
     private static final DecimalFormat PROGRESS_DECIMAL_FORMAT = new DecimalFormat("0.00%");
     private static final Long PER_KB_BYTES = 1024L;
     private Future future;
 
-    public DefaultUploadProgressCallBack() {
+    public DefaultUploadProgressProgressCallback() {
         future = measureUploadRateScheduler.scheduleAtFixedRate(this::printUploadRateInfo, 1, 1, TimeUnit.SECONDS);
     }
 
@@ -73,7 +72,7 @@ public class DefaultUploadProgressCallBack implements UploadFileCallBack {
     }
 
     @Override
-    public void onFileUploadProgress(String fileIdentifier, long totalFileBytesLength, long totalUploadFileBytes, String filePath, long fileBytesLength, long uploadFileBytesLength) {
+    public void onFileUploadProgress(String fileIdentifier, String filePath, long fileBytesLength, long uploadFileBytesLength) {
         updateUploadFileBytesLengthMap.computeIfAbsent(fileIdentifier, (k) -> {
             SimpleUploadProgress simpleUploadProgress = new SimpleUploadProgress();
             simpleUploadProgress.setFileIdentifier(fileIdentifier);

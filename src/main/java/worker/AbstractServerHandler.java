@@ -38,6 +38,10 @@ public abstract class AbstractServerHandler {
      */
     abstract boolean authorized(String token, String fileName);
 
+    protected void shutdown() {
+
+    }
+
     protected ErrorMeta<String> validateRequestIdentifier(FileUploadRequest request) {
         String identifier = request.getIdentifier();
         ErrorMeta<String> errorMeta = new ErrorMeta<>();
@@ -117,13 +121,6 @@ public abstract class AbstractServerHandler {
             }
         }
         return cachedUploadFileStructure;
-    }
-
-    /**
-     * hook方式，释放资源，常见连接池
-     */
-    public void releaseResource() {
-
     }
 
     public final FileUploadResponse handleUploadFile(FileUploadRequest request, String token) {

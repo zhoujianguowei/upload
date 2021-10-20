@@ -1,12 +1,10 @@
 package common;
 
 import org.apache.thrift.util.ExecutorUtil;
-import sun.nio.ch.ThreadPool;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 线程池管理、创建以及销毁
@@ -15,32 +13,35 @@ public class ThreadPoolManager {
     /**
      * 同步文件上传进度
      */
-    private static final ScheduledExecutorService syncClientUploadProgressScheduler = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService serverSyncUploadProgressScheduler = Executors.newSingleThreadScheduledExecutor();
     /**
      * 打印文件上传速率
      */
-    private static final ScheduledExecutorService measureUploadRateScheduler = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService clientAcquireUploadSpeedScheduler = Executors.newSingleThreadScheduledExecutor();
     /**
      * 控制文件并发上传
      */
-    private static final ExecutorService parallelUploadThreadPool = Executors.newFixedThreadPool(50);
+    private static final ExecutorService clientParallelUploadFileNumExecutorService = Executors.newFixedThreadPool(50);
 
-    public static ScheduledExecutorService getSyncClientUploadProgressScheduler() {
-        return syncClientUploadProgressScheduler;
+    public static ScheduledExecutorService getServerSyncUploadProgressScheduler() {
+        return serverSyncUploadProgressScheduler;
     }
 
-    public static ScheduledExecutorService getMeasureUploadRateScheduler() {
-        return measureUploadRateScheduler;
+    public static ScheduledExecutorService getClientAcquireUploadSpeedScheduler() {
+        return clientAcquireUploadSpeedScheduler;
     }
 
-    public static ExecutorService getParallelUploadThreadPool() {
-        return parallelUploadThreadPool;
+    public static ExecutorService getClientParallelUploadFileNumExecutorService() {
+        return clientParallelUploadFileNumExecutorService;
     }
 
-    public static void shutdownCientThreadPool() {
-        ExecutorUtil.gracefulShutdown(syncClientUploadProgressScheduler, 1000);
-        ExecutorUtil.gracefulShutdown(measureUploadRateScheduler, 1000);
-        ExecutorUtil.gracefulShutdown(parallelUploadThreadPool, 1000);
+    public static void shutdownClientThreadPoolSource() {
+        ExecutorUtil.gracefulShutdown(clientParallelUploadFileNumExecutorService, 1000);
+        ExecutorUtil.gracefulShutdown(clientAcquireUploadSpeedScheduler, 1000);
+    }
+
+    public static void shutdownServerThreadPoolSource() {
+        ExecutorUtil.gracefulShutdown(serverSyncUploadProgressScheduler, 1000);
     }
 
 }

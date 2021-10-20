@@ -1,6 +1,7 @@
 package config;
 
 import cons.BusinessConstant;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,12 +27,27 @@ public class ConfigDataHelper {
 
     public static void loadConfigData() {
         try {
-            saveStoreConfigData(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(102400)));
-            saveStoreConfigData(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(3)));
-            saveStoreConfigData(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(5)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(102400)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(3)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(5)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, System.getProperty(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, String.valueOf(10033)));
         } catch (IOException e) {
             throw new RuntimeException("failed to load config");
         }
+    }
+
+    /**
+     * 如果对应的配置不存在的话，写入配置；否则不做操作
+     *
+     * @param key
+     * @param configData
+     * @throws IOException
+     */
+    public static synchronized void saveStoreConfigDataIfConfigNotExists(String key, String configData) throws IOException {
+        if (StringUtils.isNotBlank(getStoreConfigData(key))) {
+            return;
+        }
+        saveStoreConfigData(key, configData);
     }
 
     public static synchronized void saveStoreConfigData(String key, String configData) throws IOException {

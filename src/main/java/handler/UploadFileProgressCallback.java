@@ -7,7 +7,7 @@ import rpc.thrift.file.transfer.FileTypeEnum;
  *
  * @date 2021-10-10
  */
-public interface UploadFileCallBack {
+public interface UploadFileProgressCallback {
     /**
      * 单个文件上传完成
      *
@@ -36,12 +36,11 @@ public interface UploadFileCallBack {
     /**
      * 文件上传进度
      *
-     * @param totalFileBytesLength  上传的是文件夹，根文件夹路径
-     * @param totalUploadFileBytes  已经上传的文件总大小
-     * @param filePath              上传文件路径
+     * @param fileIdentifier        上传文件标识
+     * @param filePath              上传文件路径所在本地路径，对于服务端来说是文件保存路径，对于客户端口是文件上传路径
      * @param fileBytesLength       当前上传文件大小
      * @param uploadFileBytesLength 上传文件大小
      */
-    void onFileUploadProgress(String fileIdentifier,long totalFileBytesLength, long totalUploadFileBytes, String filePath, long fileBytesLength, long uploadFileBytesLength);
+    void onFileUploadProgress(String fileIdentifier, String filePath, long fileBytesLength, long uploadFileBytesLength);
 
 }

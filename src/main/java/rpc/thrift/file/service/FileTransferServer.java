@@ -1,5 +1,7 @@
 package rpc.thrift.file.service;
 
+import config.ConfigDataHelper;
+import cons.BusinessConstant;
 import io.netty.util.concurrent.DefaultThreadFactory;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -23,13 +25,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 
-public class AsyncFileTransferServer {
-    public static int FILE_HANDLER_SERVER_PORT = 10033;
+public class FileTransferServer {
+    public static int FILE_HANDLER_SERVER_PORT = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT));
     public static int BACK_LOG = 100;
     private static int SELECTOR_THREADS = 16;
     private static int ACCEPT_QUEUE_PER_THREAD = 1000;
     private static long MAX_READ_BUFFER_BYTES = 256 * 1024 * 1024;
-    private static final Logger LOGGER = LoggerFactory.getLogger(AsyncFileTransferServer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferServer.class);
 
 
     public static void main(String[] args) throws TTransportException {

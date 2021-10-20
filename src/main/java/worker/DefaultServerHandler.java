@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
@@ -27,7 +28,8 @@ import java.util.regex.Pattern;
  */
 public class DefaultServerHandler extends AbstractServerHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultServerHandler.class);
-    private ScheduledExecutorService syncUploadProgressScheduler = ThreadPoolManager.getSyncClientUploadProgressScheduler();
+    protected ScheduledExecutorService syncUploadProgressScheduler = ThreadPoolManager.getServerSyncUploadProgressScheduler();
+    protected Future syncUploadProgressFuture;
 
     private static class InnerInstance {
         static DefaultServerHandler instance = new DefaultServerHandler();
@@ -35,7 +37,16 @@ public class DefaultServerHandler extends AbstractServerHandler {
 
     private DefaultServerHandler() {
         loadUploadProgress();
-        syncUploadProgressScheduler.scheduleAtFixedRate(() -> syncUploadProgress(), 5, 10, TimeUnit.SECONDS);
+        syncUploadProgressFuture = syncUploadProgressScheduler.scheduleAtFixedRate(() -> syncUploadProgress(), 5, 10, TimeUnit.SECONDS);
+    }
+
+    @Override
+    protected void shutdown() {
+        super.shutdown();
+        if(syncUploadProgressFuture!=null){
+            syncUploadProgressFuture.cancel(true);
+        }
+        ThreadPoolManager.shutdownServerThreadPoolSource();
     }
 
     /**
@@ -83,7 +94,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
             return parentFile;
         }
         if (StringUtils.isNotBlank(parentPath)) {
-            parentFile = new File(parentPath.replaceAll(Pattern.quote(File.separator), CommonConstant.LINUX_SHELL_SEPARATOR));
+            parentFile = new File(parentPath.replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR));
             if (!parentFile.exists() && !parentFile.mkdirs()) {
                 LOGGER.error("failed to create parentPath||parentFile={}", parentFile.getAbsolutePath());
                 return parentFile;

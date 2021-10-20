@@ -19,6 +19,8 @@ public class BusinessConstant {
 
     }
 
+    public static final String SERVER_TERMINAL_TYPE = "server_terminal";
+    public static final String CLIENT_TERMINAL_TYPE = "client_terminal";
     /**
      * 上传的文件临时名称
      */
@@ -44,5 +46,9 @@ public class BusinessConstant {
          * 批量上传的最大文件个数，默认5个
          */
         String MAX_PARALLEL_UPDATE_FILE_NUM = "max_parallel_upload_file_num";
+        /**
+         * 文件上传rpc server端的默认端口
+         */
+        String TRANSFER_FILE_SERVER_PORT ="upload_file_server_port";
     }
 }
