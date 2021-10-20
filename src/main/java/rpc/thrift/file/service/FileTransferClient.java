@@ -1,6 +1,6 @@
 package rpc.thrift.file.service;
 
-import handler.DefaultUploadProgressProgressCallback;
+import handler.UploadFileProgressCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import worker.AbstractClientWorker;
@@ -13,7 +13,15 @@ public class FileTransferClient {
 
     private static final int CONNECTION_TIME_OUT = 50000;
     private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferClient.class);
+    private UploadFileProgressCallback uploadFileProgressCallback;
 
+    public void uploadFile(String uploadFileOrDirPath, String host) {
+        this.uploadFile(null, uploadFileOrDirPath, host);
+    }
+
+    public void uploadFile(String saveParentPath, String uploadFileOrDirPath, String host) {
+        this.uploadFile(saveParentPath, uploadFileOrDirPath, host, CONNECTION_TIME_OUT);
+    }
 
     public void uploadFile(String saveParentPath, String uploadFileOrDirPath, String host, int connectionTimeOut) {
         this.uploadFile(saveParentPath, uploadFileOrDirPath, host, FileTransferServer.FILE_HANDLER_SERVER_PORT, connectionTimeOut);
@@ -33,8 +41,17 @@ public class FileTransferClient {
             throw new IllegalArgumentException(String.format("path %s not exits or can't execute", uploadFileOrDirPath));
         }
         AbstractClientWorker clientWorker = DefaultClientWorker.getSingleTon();
-        clientWorker.addUploadProgressFileCallback(new DefaultUploadProgressProgressCallback());
-        clientWorker.clientUploadFile(saveParentPath, file, host, FileTransferServer.FILE_HANDLER_SERVER_PORT, CONNECTION_TIME_OUT);
+        if (uploadFileProgressCallback != null) {
+            clientWorker.addUploadProgressFileCallback(uploadFileProgressCallback);
+        }
+        clientWorker.clientUploadFile(saveParentPath, file, host, port, connectionTimeOut);
     }
 
+    public UploadFileProgressCallback getUploadFileProgressCallback() {
+        return uploadFileProgressCallback;
+    }
+
+    public void setUploadFileProgressCallback(UploadFileProgressCallback uploadFileProgressCallback) {
+        this.uploadFileProgressCallback = uploadFileProgressCallback;
+    }
 }

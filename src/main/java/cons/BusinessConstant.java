@@ -1,5 +1,7 @@
 package cons;
 
+import handler.ShowUploadProgressSpeedProgressCallback;
+
 /**
  * 业务类常量
  */
@@ -49,6 +51,10 @@ public class BusinessConstant {
         /**
          * 文件上传rpc server端的默认端口
          */
-        String TRANSFER_FILE_SERVER_PORT ="upload_file_server_port";
+        String TRANSFER_FILE_SERVER_PORT = "upload_file_server_port";
+        /**
+         * 是否展示客户端上传速度，如果设置为true的话，那么默认会添加{@link ShowUploadProgressSpeedProgressCallback}监听类
+         */
+        String SHOW_CLIENT_UPLOAD_SPEED_SWITCH = "show_client_upload_speed";
     }
 }

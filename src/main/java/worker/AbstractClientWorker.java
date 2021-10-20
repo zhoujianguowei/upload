@@ -7,10 +7,12 @@ import config.ConfigDataHelper;
 import cons.BusinessConstant;
 import cons.CommonConstant;
 import handler.AbstractUploadFileProgressCallback;
+import handler.ShowUploadProgressSpeedProgressCallback;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.thrift.util.AllocateSourcesUtils;
 import org.apache.thrift.util.ExecutorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 客户端处理文件上传、下载服务类
@@ -33,15 +38,33 @@ import java.util.concurrent.ExecutorService;
 public abstract class AbstractClientWorker extends AbstractUploadFileProgressCallback {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractClientWorker.class);
     protected ExecutorService parallelUploadExecutor = ThreadPoolManager.getClientParallelUploadFileNumExecutorService();
+    protected boolean shouldShowUploadSpeed = Boolean.parseBoolean(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.SHOW_CLIENT_UPLOAD_SPEED_SWITCH));
+    /**
+     * 标志位，标记{@link #showUploadProgressSpeedProgressCallback}是否已添加
+     */
+    protected boolean speedListenerAppend = false;
+    private ScheduledExecutorService measureUploadRateScheduler = ThreadPoolManager.getClientAcquireUploadSpeedScheduler();
+    private Future showUploadSpeedFuture;
+    /**
+     * 打印文件上传进度
+     */
+    protected ShowUploadProgressSpeedProgressCallback showUploadProgressSpeedProgressCallback = new ShowUploadProgressSpeedProgressCallback();
 
     public AbstractClientWorker(String terminalType) {
         super(terminalType);
+        if (shouldShowUploadSpeed) {
+            showUploadSpeedFuture = measureUploadRateScheduler.scheduleAtFixedRate(showUploadProgressSpeedProgressCallback::showUploadSpeedInfo, 1, 1, TimeUnit.SECONDS);
+        }
     }
 
     /**
      * 客户端处理完成之后，释放资源
      */
     public void shutdown() {
+        if (showUploadSpeedFuture != null) {
+            showUploadSpeedFuture.cancel(true);
+        }
+        ExecutorUtil.gracefulShutdown(measureUploadRateScheduler, 1000);
         ExecutorUtil.gracefulShutdown(parallelUploadExecutor, 1000);
     }
 
@@ -113,11 +136,20 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      * @return
      */
     public final void clientUploadFile(String saveParentPath, File file, String remoteHost, int remotePort, int connectionTimeout) {
+
         if (!file.exists() || !file.canExecute()) {
             throw new RuntimeException("file path not exists or no execute permission");
         }
         if (!detectConnection(remoteHost, remotePort, connectionTimeout)) {
             return;
+        }
+        if (shouldShowUploadSpeed && !speedListenerAppend) {
+            synchronized (this) {
+                if (!speedListenerAppend) {
+                    addUploadProgressFileCallback(showUploadProgressSpeedProgressCallback);
+                    speedListenerAppend = true;
+                }
+            }
         }
         Collection<File> fileLists = new ArrayList<>();
         if (file.isFile()) {
@@ -131,7 +163,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
         //根目录或者文件路径
         String rootFileName = file.getName();
         String parentFilePath = StringUtils.isBlank(file.getParent()) ? "" : file.getParent();
-        List<List<File>> splitFileArrayList = FileHandlerHelper.splitList(new ArrayList(fileLists), maxParallelUploadFileNum);
+        List<List<File>> splitFileArrayList = AllocateSourcesUtils.averageSource(new ArrayList(fileLists), maxParallelUploadFileNum);
         CountDownLatch countDownLatch = new CountDownLatch(maxParallelUploadFileNum);
         for (List<File> subFileList : splitFileArrayList) {
             parallelUploadExecutor.execute(() -> {

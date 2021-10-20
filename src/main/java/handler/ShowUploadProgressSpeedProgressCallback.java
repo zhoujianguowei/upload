@@ -2,36 +2,39 @@ package handler;
 
 import com.google.common.collect.Maps;
 import common.SimpleUploadProgress;
-import common.ThreadPoolManager;
+import org.apache.thrift.util.StorageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTypeEnum;
 
 import java.text.DecimalFormat;
 import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
-public class DefaultUploadProgressProgressCallback implements UploadFileProgressCallback {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUploadProgressProgressCallback.class);
+/**
+ * 客户端打印文件上传速度回调工具类
+ */
+public class ShowUploadProgressSpeedProgressCallback implements UploadFileProgressCallback {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShowUploadProgressSpeedProgressCallback.class);
     private Map<String, Float> preUploadProcess = Maps.newConcurrentMap();
     /**
      * 用来评估文件上传速度
      */
     private Map<String, SimpleUploadProgress> previousUploadFileBytesLengthMap = Maps.newConcurrentMap();
     private Map<String, SimpleUploadProgress> updateUploadFileBytesLengthMap = Maps.newConcurrentMap();
-    private ScheduledExecutorService measureUploadRateScheduler = ThreadPoolManager.getClientAcquireUploadSpeedScheduler();
-    private static final DecimalFormat PROGRESS_DECIMAL_FORMAT = new DecimalFormat("0.00%");
-    private static final Long PER_KB_BYTES = 1024L;
-    private Future future;
+    /**
+     * 上传文件速度格式，只保留一位整数，比如13.5kb，25.8kb,3.2mb
+     */
+    private static final String UPLOAD_SPEED_FORMAT = "0.0";
+    /**
+     * 上传文件进度格式，保留2位小数
+     */
+    private static final DecimalFormat UPLOAD_PGOGRESS_NUMBER_FORMAT = new DecimalFormat("#.00%");
 
-    public DefaultUploadProgressProgressCallback() {
-        future = measureUploadRateScheduler.scheduleAtFixedRate(this::printUploadRateInfo, 1, 1, TimeUnit.SECONDS);
+    public ShowUploadProgressSpeedProgressCallback() {
     }
 
-    public void printUploadRateInfo() {
-        long totalUploadKbPerSecond = 0L;
+    public void showUploadSpeedInfo() {
+        long totalUploadBytesPerSecond = 0L;
         for (Map.Entry<String, SimpleUploadProgress> entry : updateUploadFileBytesLengthMap.entrySet()) {
             String fileIdentifier = entry.getKey();
             SimpleUploadProgress updateUploadProgress = entry.getValue();
@@ -43,12 +46,12 @@ public class DefaultUploadProgressProgressCallback implements UploadFileProgress
                 simpleUploadProgress.setUploadBytesLength(0L);
                 return simpleUploadProgress;
             });
-            long uploadRate = updateUploadProgress.getUploadBytesLength() - preUploadProgress.getUploadBytesLength();
-            LOGGER.info("upload rate||rate={}kb||filePath={}", uploadRate / PER_KB_BYTES, updateUploadProgress.getFilePath());
-            totalUploadKbPerSecond += uploadRate;
+            long diffUploadBytesLength = updateUploadProgress.getUploadBytesLength() - preUploadProgress.getUploadBytesLength();
+            LOGGER.info("upload rate||rate={}||filePath={}", StorageFormat.formatStorageSize(String.valueOf(diffUploadBytesLength) + "byte", UPLOAD_SPEED_FORMAT), updateUploadProgress.getFilePath());
+            totalUploadBytesPerSecond += diffUploadBytesLength;
             preUploadProgress.setUploadBytesLength(updateUploadProgress.getUploadBytesLength());
         }
-        LOGGER.info("total upload rate||rate={}kb", totalUploadKbPerSecond / PER_KB_BYTES);
+        LOGGER.info("total upload rate||rate={}", StorageFormat.formatStorageSize(String.valueOf(totalUploadBytesPerSecond) + "byte", UPLOAD_SPEED_FORMAT));
     }
 
     protected boolean showUpdateUploadProgress(String fileIdentifier, float currentUpdateProgress) {
@@ -84,7 +87,7 @@ public class DefaultUploadProgressProgressCallback implements UploadFileProgress
         float currentProgress = uploadFileBytesLength * 1.0f / fileBytesLength;
         if (showUpdateUploadProgress(fileIdentifier, currentProgress)) {
             preUploadProcess.put(fileIdentifier, currentProgress);
-            LOGGER.info("upload progress||progress={}||filePath={}", PROGRESS_DECIMAL_FORMAT.format(currentProgress), filePath);
+            LOGGER.info("upload progress||progress={}||filePath={}", UPLOAD_PGOGRESS_NUMBER_FORMAT.format(currentProgress), filePath);
         }
     }
 }

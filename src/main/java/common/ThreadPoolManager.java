@@ -35,13 +35,4 @@ public class ThreadPoolManager {
         return clientParallelUploadFileNumExecutorService;
     }
 
-    public static void shutdownClientThreadPoolSource() {
-        ExecutorUtil.gracefulShutdown(clientParallelUploadFileNumExecutorService, 1000);
-        ExecutorUtil.gracefulShutdown(clientAcquireUploadSpeedScheduler, 1000);
-    }
-
-    public static void shutdownServerThreadPoolSource() {
-        ExecutorUtil.gracefulShutdown(serverSyncUploadProgressScheduler, 1000);
-    }
-
 }

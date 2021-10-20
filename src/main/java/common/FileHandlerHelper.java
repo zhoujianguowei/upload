@@ -201,37 +201,4 @@ public class FileHandlerHelper {
     public static String generateUniqueIdentifier(String absoluteFilePath, String hostIdentifier) {
         return IDENTIFIER_PREFIX + CommonConstant.UNDERLINE + doMd5Digest(absoluteFilePath) + CommonConstant.UNDERLINE + doMd5Digest(hostIdentifier);
     }
-
-    /**
-     * 将资源平均划分到splitNumber份
-     *
-     * @param source
-     * @param splitNumber
-     * @param <T>
-     * @return
-     */
-    public static <T> List<List<T>> splitList(List<T> source, int splitNumber) {
-
-        if (CollectionUtils.isEmpty(source) || splitNumber <= 0) {
-            return new ArrayList<>();
-        }
-        int totalSize = source.size();
-        //每个子列表分到的资源个数
-        int perSubListSize = totalSize / splitNumber;
-        if (totalSize % splitNumber != 0) {
-            perSubListSize++;
-        }
-        List<List<T>> result = new ArrayList<>();
-        int index = 0;
-        for (int i = 0; i < splitNumber; i++) {
-            ArrayList<T> subList = new ArrayList<>();
-            for (int j = index; j < index + perSubListSize && j < totalSize; j++) {
-                subList.add(source.get(j));
-            }
-            index += perSubListSize;
-            result.add(subList);
-        }
-        return result;
-    }
-
 }

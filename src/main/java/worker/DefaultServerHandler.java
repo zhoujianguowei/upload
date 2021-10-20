@@ -6,6 +6,7 @@ import config.UploadProgressHelper;
 import cons.CommonConstant;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.thrift.util.ExecutorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTypeEnum;
@@ -43,10 +44,10 @@ public class DefaultServerHandler extends AbstractServerHandler {
     @Override
     protected void shutdown() {
         super.shutdown();
-        if(syncUploadProgressFuture!=null){
+        if (syncUploadProgressFuture != null) {
             syncUploadProgressFuture.cancel(true);
         }
-        ThreadPoolManager.shutdownServerThreadPoolSource();
+        ExecutorUtil.gracefulShutdown(syncUploadProgressScheduler, 1000);
     }
 
     /**
@@ -95,16 +96,24 @@ public class DefaultServerHandler extends AbstractServerHandler {
         }
         if (StringUtils.isNotBlank(parentPath)) {
             parentFile = new File(parentPath.replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR));
-            if (!parentFile.exists() && !parentFile.mkdirs()) {
-                LOGGER.error("failed to create parentPath||parentFile={}", parentFile.getAbsolutePath());
-                return parentFile;
+            if (!parentFile.exists()) {
+                synchronized (this) {
+                    if (!parentFile.exists() && !parentFile.mkdirs()) {
+                        LOGGER.error("failed to create parentPath||parentFile={}", parentFile.getAbsolutePath());
+                        return parentFile;
+                    }
+                }
             }
         }
         if (StringUtils.isNotBlank(relativePath)) {
             parentFile = new File(parentPath, relativePath);
-            if (!parentFile.exists() && !parentFile.mkdirs()) {
-                LOGGER.error("failed to create relative path||relativePath={}", parentFile.getAbsolutePath());
-                return parentFile;
+            if (!parentFile.exists()) {
+                synchronized (this) {
+                    if (!parentFile.exists() && !parentFile.mkdirs()) {
+                        LOGGER.error("failed to create relative path||relativePath={}", parentFile.getAbsolutePath());
+                        return parentFile;
+                    }
+                }
             }
         }
         return parentFile;
