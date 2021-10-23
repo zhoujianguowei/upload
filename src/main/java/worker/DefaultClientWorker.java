@@ -95,45 +95,33 @@ public class DefaultClientWorker extends AbstractClientWorker {
      * @return
      */
     @Override
-    public ClientUploadStatus doUploadSingleFile(String saveParentPath, String relativePath, File uploadSingleFileOrDir, FileTransferWorker.Client client) {
+    public ClientUploadStatus doUploadSingleFile(String saveParentPath, String relativePath,
+                                                 File uploadSingleFileOrDir, FileTransferWorker.Client client, FileUploadRequest[] fileUploadRequests) throws Exception {
         RandomAccessFile randomAccessFile = null;
         long nextUploadPos = 0L;
         FileUploadRequest fileUploadRequest = null;
-        String fileIdentifier = null;
-        String fileWholePath = FileHandlerHelper.generateWholePath(saveParentPath, relativePath, uploadSingleFileOrDir.getName());
-        FileTypeEnum fileTypeEnum = uploadSingleFileOrDir.isDirectory() ? FileTypeEnum.DIR_TYPE : FileTypeEnum.FILE_TYPE;
 
         ClientUploadStatus uploadStatus = ClientUploadStatus.UPLOAD_FINISH;
-        try {
-            if (uploadSingleFileOrDir.isFile()) {
-                randomAccessFile = new RandomAccessFile(uploadSingleFileOrDir, "r");
-            }
-            fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, uploadSingleFileOrDir, nextUploadPos, randomAccessFile);
-            fileIdentifier = fileUploadRequest.getIdentifier();
-            switch (fileUploadRequest.getFileType()) {
-                case DIR_TYPE:
-                    uploadStatus = handleUploadDir(fileUploadRequest, uploadSingleFileOrDir, client);
-                    break;
-                case FILE_TYPE:
-                    uploadStatus = handleUploadFile(fileUploadRequest, saveParentPath, relativePath, uploadSingleFileOrDir, randomAccessFile, client);
-                    break;
-            }
-        } catch (Exception e) {
-            LOGGER.error("client upload exception", e);
-            uploadStatus = ClientUploadStatus.FAIL;
-        } finally {
-            if (randomAccessFile != null) {
-                try {
-                    randomAccessFile.close();
-                } catch (IOException e) {
-                    LOGGER.error("io exception", e);
-                }
-            }
+        if (uploadSingleFileOrDir.isFile()) {
+            randomAccessFile = new RandomAccessFile(uploadSingleFileOrDir, "r");
         }
-        if (uploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
-            onFileUploadFail(fileIdentifier, fileWholePath, fileTypeEnum);
-        } else {
-            onFileUploadFinish(fileIdentifier, fileWholePath, fileTypeEnum);
+        fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, uploadSingleFileOrDir, nextUploadPos, randomAccessFile);
+        RandomAccessFile finalRandomAccessFile = randomAccessFile;
+        hookMap.put(fileUploadRequest.getIdentifier(), () -> {
+            try {
+                finalRandomAccessFile.close();
+            } catch (IOException e) {
+                LOGGER.error("random io exception||filePath=" + uploadSingleFileOrDir.getAbsolutePath(), e);
+            }
+        });
+        fileUploadRequests[0] = fileUploadRequest;
+        switch (fileUploadRequest.getFileType()) {
+            case DIR_TYPE:
+                uploadStatus = handleUploadDir(fileUploadRequest, uploadSingleFileOrDir, client);
+                break;
+            case FILE_TYPE:
+                uploadStatus = handleUploadFile(fileUploadRequest, saveParentPath, relativePath, uploadSingleFileOrDir, randomAccessFile, client);
+                break;
         }
         return uploadStatus;
     }

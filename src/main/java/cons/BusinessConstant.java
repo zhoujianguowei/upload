@@ -56,5 +56,9 @@ public class BusinessConstant {
          * 是否展示客户端上传速度，如果设置为true的话，那么默认会添加{@link ShowUploadProgressSpeedProgressCallback}监听类
          */
         String SHOW_CLIENT_UPLOAD_SPEED_SWITCH = "show_client_upload_speed";
+        /**
+         * 文件上传最大重试次数，这个重试次数限制的是文件重试的类型。包括异常重试、非异常重试等
+         */
+        String FILE_UPLOAD_MAX_RETRY_COUNT="file_upload_max_retry_count";
     }
 }
