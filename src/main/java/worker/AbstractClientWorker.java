@@ -13,8 +13,14 @@ import handler.FileUploadExceptionRetryStrategy;
 import handler.RetryStrategy;
 import handler.ShowUploadProgressSpeedProgressCallback;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
+import org.apache.commons.io.filefilter.FileFileFilter;
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.util.AllocateSourcesUtils;
 import org.apache.thrift.util.ExecutorUtil;
@@ -65,6 +71,10 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      * 一些hook调用，文件上传完成或者失败时候一些资源的释放，比如io的释放
      */
     protected Map<String, Runnable> hookMap = Maps.newConcurrentMap();
+    /**
+     * 如果上传的是文件夹，过滤上传的文件类型
+     */
+    private String[] nameFilters;
 
     public AbstractClientWorker(String terminalType) {
         this(terminalType, null);
@@ -78,6 +88,14 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
         if (retryStrategy != null) {
             this.retryStrategy = retryStrategy;
         }
+    }
+
+    public String[] getNameFilters() {
+        return nameFilters;
+    }
+
+    public void setNameFilters(String[] nameFilters) {
+        this.nameFilters = nameFilters;
     }
 
     /**
@@ -202,7 +220,11 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
         if (file.isFile()) {
             fileLists.add(file);
         } else {
-            fileLists = FileUtils.listFilesAndDirs(file, TrueFileFilter.TRUE, DirectoryFileFilter.DIRECTORY);
+            IOFileFilter fileFilter = FileFileFilter.FILE;
+            if (ArrayUtils.isNotEmpty(nameFilters)) {
+                fileFilter = FileFilterUtils.and(new SuffixFileFilter(nameFilters, IOCase.INSENSITIVE), FileFileFilter.FILE);
+            }
+            fileLists = FileUtils.listFilesAndDirs(file, fileFilter, DirectoryFileFilter.DIRECTORY);
         }
         //并发上传文件数量
         int maxParallelUploadFileNum = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM));
@@ -249,7 +271,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                             clientUploadStatus = ClientUploadStatus.FAIL;
                             retryStrategyEnum = retryStrategy.doRetryOrNot(fileUploadRequests[0], function, e);
                         }
-                        boolean goOn = true;
+                        boolean goOn = false;
                         boolean terminalAll = false;
                         switch (retryStrategyEnum) {
                             case SIMPLE_RETRY:

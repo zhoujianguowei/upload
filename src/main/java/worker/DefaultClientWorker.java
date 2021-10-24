@@ -109,7 +109,9 @@ public class DefaultClientWorker extends AbstractClientWorker {
         RandomAccessFile finalRandomAccessFile = randomAccessFile;
         hookMap.put(fileUploadRequest.getIdentifier(), () -> {
             try {
-                finalRandomAccessFile.close();
+                if (finalRandomAccessFile != null) {
+                    finalRandomAccessFile.close();
+                }
             } catch (IOException e) {
                 LOGGER.error("random io exception||filePath=" + uploadSingleFileOrDir.getAbsolutePath(), e);
             }
