@@ -11,7 +11,7 @@ import cons.CommonConstant;
 import handler.AbstractUploadFileProgressCallback;
 import handler.FileUploadExceptionRetryStrategy;
 import handler.RetryStrategy;
-import handler.ShowUploadProgressSpeedProgressCallback;
+import handler.TraceUploadProgressSpeedProgressCallback;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOCase;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
@@ -19,7 +19,6 @@ import org.apache.commons.io.filefilter.FileFileFilter;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.util.AllocateSourcesUtils;
@@ -42,7 +41,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -52,17 +50,17 @@ import java.util.regex.Pattern;
 public abstract class AbstractClientWorker extends AbstractUploadFileProgressCallback {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractClientWorker.class);
     protected ExecutorService parallelUploadExecutor = ThreadPoolManager.getClientParallelUploadFileNumExecutorService();
-    protected boolean shouldShowUploadSpeed = Boolean.parseBoolean(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.SHOW_CLIENT_UPLOAD_SPEED_SWITCH));
+    protected boolean shouldTraceUploadSpeed = Boolean.parseBoolean(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH));
     /**
-     * 标志位，标记{@link #showUploadProgressSpeedProgressCallback}是否已添加
+     * 标志位，标记{@link #traceUploadProgressSpeedProgressCallback}是否已添加
      */
     protected boolean speedListenerAppend = false;
     private ScheduledExecutorService measureUploadRateScheduler = ThreadPoolManager.getClientAcquireUploadSpeedScheduler();
-    private Future showUploadSpeedFuture;
+    private Future traceUploadSpeedFuture;
     /**
      * 打印文件上传进度
      */
-    protected ShowUploadProgressSpeedProgressCallback showUploadProgressSpeedProgressCallback = new ShowUploadProgressSpeedProgressCallback();
+    protected TraceUploadProgressSpeedProgressCallback traceUploadProgressSpeedProgressCallback = new TraceUploadProgressSpeedProgressCallback();
     /**
      * 重试策略
      */
@@ -82,8 +80,8 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
 
     public <B, T> AbstractClientWorker(String terminalType, RetryStrategy<B, T> retryStrategy) {
         super(terminalType);
-        if (shouldShowUploadSpeed) {
-            showUploadSpeedFuture = measureUploadRateScheduler.scheduleAtFixedRate(showUploadProgressSpeedProgressCallback::showUploadSpeedInfo, 1, 1, TimeUnit.SECONDS);
+        if (shouldTraceUploadSpeed) {
+            traceUploadSpeedFuture = measureUploadRateScheduler.scheduleAtFixedRate(traceUploadProgressSpeedProgressCallback::showUploadSpeedInfo, 5, 1, TimeUnit.SECONDS);
         }
         if (retryStrategy != null) {
             this.retryStrategy = retryStrategy;
@@ -102,8 +100,8 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      * 客户端处理完成之后，释放资源
      */
     public void shutdown() {
-        if (showUploadSpeedFuture != null) {
-            showUploadSpeedFuture.cancel(true);
+        if (traceUploadSpeedFuture != null) {
+            traceUploadSpeedFuture.cancel(true);
         }
         ExecutorUtil.gracefulShutdown(measureUploadRateScheduler, 1000);
         ExecutorUtil.gracefulShutdown(parallelUploadExecutor, 1000);
@@ -201,17 +199,16 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      * @return
      */
     public final void clientUploadFile(String saveParentPath, File file, String remoteHost, int remotePort, int connectionTimeout) {
-
         if (!file.exists()) {
             throw new RuntimeException("file path not exists or no read permission");
         }
         if (!detectConnection(remoteHost, remotePort, connectionTimeout)) {
             return;
         }
-        if (shouldShowUploadSpeed && !speedListenerAppend) {
+        if (shouldTraceUploadSpeed && !speedListenerAppend) {
             synchronized (this) {
                 if (!speedListenerAppend) {
-                    addUploadProgressFileCallback(showUploadProgressSpeedProgressCallback);
+                    addUploadProgressFileCallback(traceUploadProgressSpeedProgressCallback);
                     speedListenerAppend = true;
                 }
             }
@@ -228,6 +225,10 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
         }
         //并发上传文件数量
         int maxParallelUploadFileNum = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM));
+        /**
+         * 建立rpc连接最大重试次数
+         */
+        int maxCreateConnectionTryTimes = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES));
         String rootPath = file.getAbsolutePath();
         //根目录或者文件路径
         String rootFileName = file.getName();
@@ -239,7 +240,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                 RemoteRpcNode remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
                 try {
                     for (int i = 0; i < subFileList.size(); i++) {
-                        if (!remoteRpcNode.createRemoteConnectionIfNotExists()) {
+                        if (!remoteRpcNode.createRemoteConnectionWithMaxTryCount(maxCreateConnectionTryTimes)) {
                             return;
                         }
                         File uploadFile = subFileList.get(i);
@@ -256,7 +257,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                             int rootFilePathSplit = rootFileName.indexOf(parentFilePath) + parentFilePath.length() + 1;
                             relativePath = uploadFile.getParent().substring(rootFilePathSplit).replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR);
                         }
-                        ClientUploadStatus clientUploadStatus = ClientUploadStatus.FAIL;
+                        ClientUploadStatus clientUploadStatus;
                         FileUploadRequest[] fileUploadRequests = new FileUploadRequest[1];
                         RetryStrategyEnum retryStrategyEnum = RetryStrategyEnum.ABORT;
                         Function<FileUploadRequest, String> function = FileUploadRequest::getIdentifier;

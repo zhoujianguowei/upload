@@ -61,6 +61,33 @@ public class RemoteRpcNode {
         return connectionAlive;
     }
 
+    protected boolean createRemoteConnectionWithMaxTryCount(int maxTryCount) {
+        return createRemoteConnectionWithMaxTryCount(maxTryCount, 100);
+    }
+
+    /**
+     * 建立rpc连接，有最大重试次数
+     *
+     * @param maxTryCount
+     * @return
+     */
+    protected boolean createRemoteConnectionWithMaxTryCount(int maxTryCount, int interval) {
+        if (maxTryCount <= 0) {
+            throw new IllegalArgumentException("maxTryCount can't be smaller than zero");
+        }
+        for (int i = 0; i < maxTryCount; i++) {
+            if (createRemoteConnectionIfNotExists()) {
+                return true;
+            }
+            try {
+                Thread.sleep(interval);
+            } catch (InterruptedException e) {
+                LOGGER.warn("interrupted exception when create rpc connection", e);
+            }
+        }
+        return false;
+    }
+
     public FileTransferWorker.Client getRemoteClient() {
         return client;
     }

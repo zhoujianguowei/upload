@@ -13,8 +13,8 @@ import java.util.Map;
 /**
  * 客户端打印文件上传速度回调工具类
  */
-public class ShowUploadProgressSpeedProgressCallback implements UploadFileProgressCallback {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ShowUploadProgressSpeedProgressCallback.class);
+public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgressCallback {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TraceUploadProgressSpeedProgressCallback.class);
     private Map<String, Float> preUploadProcess = Maps.newConcurrentMap();
     /**
      * 用来评估文件上传速度
@@ -30,7 +30,7 @@ public class ShowUploadProgressSpeedProgressCallback implements UploadFileProgre
      */
     private static final DecimalFormat UPLOAD_PGOGRESS_NUMBER_FORMAT = new DecimalFormat("#.00%");
 
-    public ShowUploadProgressSpeedProgressCallback() {
+    public TraceUploadProgressSpeedProgressCallback() {
     }
 
     public void showUploadSpeedInfo() {
