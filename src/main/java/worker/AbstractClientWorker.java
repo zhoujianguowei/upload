@@ -247,7 +247,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                         } catch (Exception e) {
                             LOGGER.error("transport exception", e);
                             clientUploadStatus = ClientUploadStatus.FAIL;
-                            retryStrategyEnum = retryStrategy.doRetryOrNot(fileUploadRequests, function, e);
+                            retryStrategyEnum = retryStrategy.doRetryOrNot(fileUploadRequests[0], function, e);
                         }
                         boolean goOn = true;
                         boolean terminalAll = false;

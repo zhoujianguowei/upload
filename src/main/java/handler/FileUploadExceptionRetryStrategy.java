@@ -18,6 +18,7 @@ import java.util.function.Function;
 public class FileUploadExceptionRetryStrategy extends AbstractRetryStrategy<FileUploadRequest, Exception> {
     private static final Logger LOGGER = LoggerFactory.getLogger(FileUploadExceptionRetryStrategy.class);
 
+    @Override
     public RetryStrategyEnum handleExceptionRetryStrategy(FileUploadRequest fileUploadRequest, Function<FileUploadRequest, String> function, Exception e) {
         String retryType = StringUtils.join(new String[]{fileUploadRequest.getIdentifier(), e.getClass().getSimpleName()}, CommonConstant.UNDERLINE);
         int retryCount = retryRecordInfoMap.getOrDefault(retryType, new AtomicInteger(0)).incrementAndGet();
