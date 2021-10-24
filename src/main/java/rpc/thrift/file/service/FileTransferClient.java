@@ -43,7 +43,7 @@ public class FileTransferClient {
     public void uploadFile(String saveParentPath, String uploadFileOrDirPath, String host,
                            int port, int connectionTimeOut, String[] nameFilters) {
         File file = new File(uploadFileOrDirPath);
-        if (!file.exists() || !file.canRead() || !file.canExecute()) {
+        if (!file.exists() || !file.canRead()) {
             throw new IllegalArgumentException(String.format("path %s not exits or can't execute", uploadFileOrDirPath));
         }
         AbstractClientWorker clientWorker = DefaultClientWorker.getSingleTon();

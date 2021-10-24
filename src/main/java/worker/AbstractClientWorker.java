@@ -202,8 +202,8 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      */
     public final void clientUploadFile(String saveParentPath, File file, String remoteHost, int remotePort, int connectionTimeout) {
 
-        if (!file.exists() || !file.canExecute()) {
-            throw new RuntimeException("file path not exists or no execute permission");
+        if (!file.exists()) {
+            throw new RuntimeException("file path not exists or no read permission");
         }
         if (!detectConnection(remoteHost, remotePort, connectionTimeout)) {
             return;
