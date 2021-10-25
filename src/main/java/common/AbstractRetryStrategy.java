@@ -40,7 +40,7 @@ public abstract class AbstractRetryStrategy<B, T> implements RetryStrategy<B, T>
             return handleExceptionRetryStrategy(o, function, (Exception) t);
         }
         String retryType = function.apply(o);
-        int retryCount = retryRecordInfoMap.getOrDefault(retryType, new AtomicInteger()).incrementAndGet();
+        int retryCount = retryRecordInfoMap.computeIfAbsent(retryType, k -> new AtomicInteger()).incrementAndGet();
         LOGGER.warn("retry ||retryType={}||retryCount={}||maxRetryCount={}", retryType, retryCount, MAX_RETRY_COUNT);
         if (retryCount > MAX_RETRY_COUNT) {
             LOGGER.error("retry times exceed max retry times,abort");

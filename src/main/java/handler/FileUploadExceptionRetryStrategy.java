@@ -21,7 +21,7 @@ public class FileUploadExceptionRetryStrategy extends AbstractRetryStrategy<File
     @Override
     public RetryStrategyEnum handleExceptionRetryStrategy(FileUploadRequest fileUploadRequest, Function<FileUploadRequest, String> function, Exception e) {
         String retryType = StringUtils.join(new String[]{fileUploadRequest.getIdentifier(), e.getClass().getSimpleName()}, CommonConstant.UNDERLINE);
-        int retryCount = retryRecordInfoMap.getOrDefault(retryType, new AtomicInteger(0)).incrementAndGet();
+        int retryCount = retryRecordInfoMap.computeIfAbsent(retryType, k -> new AtomicInteger(0)).incrementAndGet();
         LOGGER.info("upload file exception||retryType={}||retryCount={}", retryType, retryCount);
         if (e instanceof TException) {
             if (retryCount > MAX_RETRY_COUNT) {

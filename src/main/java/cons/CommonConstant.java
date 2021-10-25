@@ -8,9 +8,9 @@ public class CommonConstant {
     /**
      * linux版本的文件路径分隔符
      */
-    public static String LINUX_SHELL_SEPARATOR="/";
+    public static String LINUX_SHELL_SEPARATOR = "/";
     /**
      * windows系统文件路径分隔符
      */
-    public static String WINDOWS_FILE_SEPARATOR="\\";
+    public static String WINDOWS_FILE_SEPARATOR = "\\";
 }

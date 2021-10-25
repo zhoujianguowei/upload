@@ -1,7 +1,5 @@
 package common;
 
-import org.apache.thrift.util.ExecutorUtil;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

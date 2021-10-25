@@ -7,7 +7,6 @@ import cons.BusinessConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTransferWorker;
-import rpc.thrift.file.transfer.FileTypeEnum;
 import rpc.thrift.file.transfer.FileUploadRequest;
 import rpc.thrift.file.transfer.FileUploadResponse;
 import rpc.thrift.file.transfer.ResResult;

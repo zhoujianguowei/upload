@@ -35,7 +35,6 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
     public @org.apache.thrift.annotation.Nullable
     java.lang.String relativePath; // optional
     /**
-     *
      * @see FileTypeEnum
      */
     public @org.apache.thrift.annotation.Nullable
@@ -50,20 +49,20 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
     public int bytesLength; // optional
     public boolean encrypted; // optional
     /**
-     *
      * @see EncryptTypeEnum
      */
     public @org.apache.thrift.annotation.Nullable
     EncryptTypeEnum encryptedType; // optional
     public long totalFileLength; // optional
 
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    /**
+     * The set of fields this struct contains, along with convenience methods for finding and manipulating them.
+     */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
         FILE_NAME((short) 1, "fileName"),
         SAVE_PARENT_FOLDER((short) 2, "saveParentFolder"),
         RELATIVE_PATH((short) 3, "relativePath"),
         /**
-         *
          * @see FileTypeEnum
          */
         FILE_TYPE((short) 4, "fileType"),
@@ -74,7 +73,6 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         BYTES_LENGTH((short) 9, "bytesLength"),
         ENCRYPTED((short) 10, "encrypted"),
         /**
-         *
          * @see EncryptTypeEnum
          */
         ENCRYPTED_TYPE((short) 11, "encryptedType"),
@@ -289,7 +287,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         this.fileName = null;
     }
 
-    /** Returns true if field fileName is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field fileName is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetFileName() {
         return this.fileName != null;
     }
@@ -314,7 +314,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         this.saveParentFolder = null;
     }
 
-    /** Returns true if field saveParentFolder is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field saveParentFolder is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetSaveParentFolder() {
         return this.saveParentFolder != null;
     }
@@ -339,7 +341,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         this.relativePath = null;
     }
 
-    /** Returns true if field relativePath is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field relativePath is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetRelativePath() {
         return this.relativePath != null;
     }
@@ -351,7 +355,6 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
     }
 
     /**
-     *
      * @see FileTypeEnum
      */
     @org.apache.thrift.annotation.Nullable
@@ -360,7 +363,6 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
     }
 
     /**
-     *
      * @see FileTypeEnum
      */
     public FileUploadRequest setFileType(@org.apache.thrift.annotation.Nullable FileTypeEnum fileType) {
@@ -372,7 +374,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         this.fileType = null;
     }
 
-    /** Returns true if field fileType is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field fileType is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetFileType() {
         return this.fileType != null;
     }
@@ -397,7 +401,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         this.identifier = null;
     }
 
-    /** Returns true if field identifier is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field identifier is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetIdentifier() {
         return this.identifier != null;
     }
@@ -422,7 +428,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __STARTPOS_ISSET_ID);
     }
 
-    /** Returns true if field startPos is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field startPos is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetStartPos() {
         return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __STARTPOS_ISSET_ID);
     }
@@ -445,7 +453,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         this.checkSum = null;
     }
 
-    /** Returns true if field checkSum is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field checkSum is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetCheckSum() {
         return this.checkSum != null;
     }
@@ -479,7 +489,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         this.contents = null;
     }
 
-    /** Returns true if field contents is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field contents is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetContents() {
         return this.contents != null;
     }
@@ -504,7 +516,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __BYTESLENGTH_ISSET_ID);
     }
 
-    /** Returns true if field bytesLength is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field bytesLength is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetBytesLength() {
         return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __BYTESLENGTH_ISSET_ID);
     }
@@ -527,7 +541,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __ENCRYPTED_ISSET_ID);
     }
 
-    /** Returns true if field encrypted is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field encrypted is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetEncrypted() {
         return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __ENCRYPTED_ISSET_ID);
     }
@@ -537,7 +553,6 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
     }
 
     /**
-     *
      * @see EncryptTypeEnum
      */
     @org.apache.thrift.annotation.Nullable
@@ -546,7 +561,6 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
     }
 
     /**
-     *
      * @see EncryptTypeEnum
      */
     public FileUploadRequest setEncryptedType(@org.apache.thrift.annotation.Nullable EncryptTypeEnum encryptedType) {
@@ -558,7 +572,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         this.encryptedType = null;
     }
 
-    /** Returns true if field encryptedType is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field encryptedType is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetEncryptedType() {
         return this.encryptedType != null;
     }
@@ -583,7 +599,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __TOTALFILELENGTH_ISSET_ID);
     }
 
-    /** Returns true if field totalFileLength is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field totalFileLength is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetTotalFileLength() {
         return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __TOTALFILELENGTH_ISSET_ID);
     }
@@ -740,7 +758,9 @@ public class FileUploadRequest implements org.apache.thrift.TBase<FileUploadRequ
         throw new java.lang.IllegalStateException();
     }
 
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise
+     */
     public boolean isSet(_Fields field) {
         if (field == null) {
             throw new java.lang.IllegalArgumentException();

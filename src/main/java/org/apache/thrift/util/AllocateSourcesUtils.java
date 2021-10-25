@@ -3,8 +3,7 @@ package org.apache.thrift.util;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AllocateSourcesUtils
-{
+public class AllocateSourcesUtils {
     /**
      * @param sources  total sources
      * @param userSize total user size ,such as thread size
@@ -13,8 +12,7 @@ public class AllocateSourcesUtils
      * @param <T>      resouces type
      * @return size number of userSize competitors
      */
-    public static <T> List<List<T>> averageSource(List<T> sources, int userSize, boolean... little)
-    {
+    public static <T> List<List<T>> averageSource(List<T> sources, int userSize, boolean... little) {
         assert userSize > 0;
         boolean littleFirst = false;
         if (little.length == 0 || little[0]) {
@@ -25,11 +23,11 @@ public class AllocateSourcesUtils
         int i, j, firstIndex = 0, maxPerResSize = sourceSize % userSize == 0 ? sourceSize / userSize : (sourceSize /
                 userSize + 1);
         int overFlowCnt = maxPerResSize * userSize - sourceSize;
-        for (i = 0; i < userSize; i++)
-        {
+        for (i = 0; i < userSize; i++) {
             List<T> iAllocRes = new ArrayList<T>();
-            for (j = firstIndex; j < firstIndex + maxPerResSize - 1; j++)
-            { iAllocRes.add(sources.get(j)); }
+            for (j = firstIndex; j < firstIndex + maxPerResSize - 1; j++) {
+                iAllocRes.add(sources.get(j));
+            }
             if (littleFirst && i < userSize - overFlowCnt && j < sourceSize) {
                 iAllocRes.add(sources.get(j));
             } else if (!littleFirst && i >= overFlowCnt && j < sourceSize) {

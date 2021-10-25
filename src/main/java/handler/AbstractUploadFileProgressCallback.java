@@ -1,9 +1,7 @@
 package handler;
 
 import com.google.common.collect.Lists;
-import groovy.io.FileType;
 import rpc.thrift.file.transfer.FileTypeEnum;
-import sun.plugin2.jvm.RemoteJVMLauncher;
 
 import java.util.List;
 

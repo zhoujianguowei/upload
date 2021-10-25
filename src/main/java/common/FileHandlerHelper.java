@@ -2,20 +2,14 @@ package common;
 
 import cons.BusinessConstant;
 import cons.CommonConstant;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTypeEnum;
 import rpc.thrift.file.transfer.FileUploadRequest;
 
-import javax.print.attribute.standard.ReferenceUriSchemesSupported;
-import java.io.File;
 import java.io.IOException;
 import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;

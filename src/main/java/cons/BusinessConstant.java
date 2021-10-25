@@ -59,10 +59,10 @@ public class BusinessConstant {
         /**
          * 文件上传最大重试次数，这个重试次数限制的是文件重试的类型。包括异常重试、非异常重试等
          */
-        String FILE_UPLOAD_MAX_RETRY_COUNT="file_upload_max_retry_count";
+        String FILE_UPLOAD_MAX_RETRY_COUNT = "file_upload_max_retry_count";
         /**
          * 客户端建立rpc连接最大重试次数，默认5次
          */
-        String CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES="client_create_connection_max_try_times";
+        String CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES = "client_create_connection_max_try_times";
     }
 }

@@ -12,7 +12,6 @@ import java.util.function.Function;
  */
 public interface RetryStrategy<B, T> {
     /**
-     *
      * @param b
      * @param function 从输入参数b能够提取对应标识
      * @param t
