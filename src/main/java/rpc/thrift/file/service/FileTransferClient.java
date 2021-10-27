@@ -12,7 +12,7 @@ import java.io.File;
 public class FileTransferClient {
 
 
-    private static final int CONNECTION_TIME_OUT = 50000;
+    private static final int CONNECTION_TIME_OUT = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferClient.class);
     private UploadFileProgressCallback uploadFileProgressCallback;
 

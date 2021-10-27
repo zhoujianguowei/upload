@@ -41,6 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -235,6 +236,8 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
         String parentFilePath = StringUtils.isBlank(file.getParent()) ? "" : file.getParent();
         List<List<File>> splitFileArrayList = AllocateSourcesUtils.averageSource(new ArrayList(fileLists), maxParallelUploadFileNum);
         CountDownLatch countDownLatch = new CountDownLatch(maxParallelUploadFileNum);
+        AtomicInteger uploadSuccessFileCount = new AtomicInteger();
+        AtomicInteger uploadFailFileCount = new AtomicInteger();
         for (List<File> subFileList : splitFileArrayList) {
             parallelUploadExecutor.execute(() -> {
                 RemoteRpcNode remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
@@ -306,9 +309,11 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                             continue;
                         }
                         if (clientUploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
+                            uploadFailFileCount.incrementAndGet();
                             LOGGER.warn("file {} upload failed||fileIndex={}||totalFileSize={}", fileAbsolutePath, i + 1, subFileList.size());
                             onFileUploadFail(fileIdentifier, fileAbsolutePath, fileTypeEnum);
                         } else {
+                            uploadSuccessFileCount.incrementAndGet();
                             LOGGER.info("file {} upload success||fileIndex={}||totalFileSize={}", fileAbsolutePath, i + 1, subFileList.size());
                             onFileUploadFinish(fileIdentifier, fileAbsolutePath, fileTypeEnum);
                         }
@@ -327,6 +332,8 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
         try {
             LOGGER.info("main thread is wait upload finish");
             countDownLatch.await();
+            LOGGER.info("upload result||uploadSuccessFileCount={}||uploadFailFileCount={}",
+                    uploadSuccessFileCount.get(), uploadFailFileCount.get());
             LOGGER.info("upload finish");
         } catch (InterruptedException e) {
             LOGGER.error("interrupted exception", e);

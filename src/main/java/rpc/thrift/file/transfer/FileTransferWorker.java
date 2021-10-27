@@ -262,7 +262,9 @@ public class FileTransferWorker {
         public @org.apache.thrift.annotation.Nullable
         java.lang.String token; // required
 
-        /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+        /**
+         * The set of fields this struct contains, along with convenience methods for finding and manipulating them.
+         */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
             REQ((short) 1, "req"),
             TOKEN((short) 2, "token");
@@ -386,7 +388,9 @@ public class FileTransferWorker {
             this.req = null;
         }
 
-        /** Returns true if field req is set (has been assigned a value) and false otherwise */
+        /**
+         * Returns true if field req is set (has been assigned a value) and false otherwise
+         */
         public boolean isSetReq() {
             return this.req != null;
         }
@@ -411,7 +415,9 @@ public class FileTransferWorker {
             this.token = null;
         }
 
-        /** Returns true if field token is set (has been assigned a value) and false otherwise */
+        /**
+         * Returns true if field token is set (has been assigned a value) and false otherwise
+         */
         public boolean isSetToken() {
             return this.token != null;
         }
@@ -456,7 +462,9 @@ public class FileTransferWorker {
             throw new java.lang.IllegalStateException();
         }
 
-        /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+        /**
+         * Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise
+         */
         public boolean isSet(_Fields field) {
             if (field == null) {
                 throw new java.lang.IllegalArgumentException();
@@ -732,7 +740,9 @@ public class FileTransferWorker {
         public @org.apache.thrift.annotation.Nullable
         rpc.thrift.file.transfer.FileUploadResponse success; // required
 
-        /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+        /**
+         * The set of fields this struct contains, along with convenience methods for finding and manipulating them.
+         */
         public enum _Fields implements org.apache.thrift.TFieldIdEnum {
             SUCCESS((short) 0, "success");
 
@@ -845,7 +855,9 @@ public class FileTransferWorker {
             this.success = null;
         }
 
-        /** Returns true if field success is set (has been assigned a value) and false otherwise */
+        /**
+         * Returns true if field success is set (has been assigned a value) and false otherwise
+         */
         public boolean isSetSuccess() {
             return this.success != null;
         }
@@ -879,7 +891,9 @@ public class FileTransferWorker {
             throw new java.lang.IllegalStateException();
         }
 
-        /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+        /**
+         * Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise
+         */
         public boolean isSet(_Fields field) {
             if (field == null) {
                 throw new java.lang.IllegalArgumentException();

@@ -28,7 +28,7 @@ public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgr
     /**
      * 上传文件进度格式，保留2位小数
      */
-    private static final DecimalFormat UPLOAD_PGOGRESS_NUMBER_FORMAT = new DecimalFormat("#.00%");
+    private static final DecimalFormat UPLOAD_PROGRESS_NUMBER_FORMAT = new DecimalFormat("0.00%");
 
     public TraceUploadProgressSpeedProgressCallback() {
     }
@@ -87,7 +87,7 @@ public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgr
         float currentProgress = uploadFileBytesLength * 1.0f / fileBytesLength;
         if (showUpdateUploadProgress(fileIdentifier, currentProgress)) {
             preUploadProcess.put(fileIdentifier, currentProgress);
-            LOGGER.info("upload progress||progress={}||filePath={}", UPLOAD_PGOGRESS_NUMBER_FORMAT.format(currentProgress), filePath);
+            LOGGER.info("upload progress||progress={}||filePath={}", UPLOAD_PROGRESS_NUMBER_FORMAT.format(currentProgress), filePath);
         }
     }
 }

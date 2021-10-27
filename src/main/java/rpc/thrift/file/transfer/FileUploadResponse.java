@@ -20,7 +20,6 @@ public class FileUploadResponse implements org.apache.thrift.TBase<FileUploadRes
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new FileUploadResponseTupleSchemeFactory();
 
     /**
-     *
      * @see ResResult
      */
     public @org.apache.thrift.annotation.Nullable
@@ -29,10 +28,11 @@ public class FileUploadResponse implements org.apache.thrift.TBase<FileUploadRes
     public @org.apache.thrift.annotation.Nullable
     java.lang.String errorMsg; // optional
 
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    /**
+     * The set of fields this struct contains, along with convenience methods for finding and manipulating them.
+     */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
         /**
-         *
          * @see ResResult
          */
         UPLOAD_STATUS_RESULT((short) 1, "uploadStatusResult"),
@@ -153,7 +153,6 @@ public class FileUploadResponse implements org.apache.thrift.TBase<FileUploadRes
     }
 
     /**
-     *
      * @see ResResult
      */
     @org.apache.thrift.annotation.Nullable
@@ -162,7 +161,6 @@ public class FileUploadResponse implements org.apache.thrift.TBase<FileUploadRes
     }
 
     /**
-     *
      * @see ResResult
      */
     public FileUploadResponse setUploadStatusResult(@org.apache.thrift.annotation.Nullable ResResult uploadStatusResult) {
@@ -174,7 +172,9 @@ public class FileUploadResponse implements org.apache.thrift.TBase<FileUploadRes
         this.uploadStatusResult = null;
     }
 
-    /** Returns true if field uploadStatusResult is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field uploadStatusResult is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetUploadStatusResult() {
         return this.uploadStatusResult != null;
     }
@@ -199,7 +199,9 @@ public class FileUploadResponse implements org.apache.thrift.TBase<FileUploadRes
         __isset_bitfield = org.apache.thrift.EncodingUtils.clearBit(__isset_bitfield, __NEXTPOS_ISSET_ID);
     }
 
-    /** Returns true if field nextPos is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field nextPos is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetNextPos() {
         return org.apache.thrift.EncodingUtils.testBit(__isset_bitfield, __NEXTPOS_ISSET_ID);
     }
@@ -222,7 +224,9 @@ public class FileUploadResponse implements org.apache.thrift.TBase<FileUploadRes
         this.errorMsg = null;
     }
 
-    /** Returns true if field errorMsg is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field errorMsg is set (has been assigned a value) and false otherwise
+     */
     public boolean isSetErrorMsg() {
         return this.errorMsg != null;
     }
@@ -278,7 +282,9 @@ public class FileUploadResponse implements org.apache.thrift.TBase<FileUploadRes
         throw new java.lang.IllegalStateException();
     }
 
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    /**
+     * Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise
+     */
     public boolean isSet(_Fields field) {
         if (field == null) {
             throw new java.lang.IllegalArgumentException();
