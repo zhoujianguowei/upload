@@ -17,9 +17,12 @@ public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgr
     private static final Logger LOGGER = LoggerFactory.getLogger(TraceUploadProgressSpeedProgressCallback.class);
     private Map<String, Float> preUploadProcess = Maps.newConcurrentMap();
     /**
-     * 用来评估文件上传速度
+     * 用来评估文件上传速度，key是{@link rpc.thrift.file.transfer.FileUploadRequest#identifier}
      */
     private Map<String, SimpleUploadProgress> previousUploadFileBytesLengthMap = Maps.newConcurrentMap();
+    /**
+     * 用来追溯文件上传大小
+     */
     private Map<String, SimpleUploadProgress> updateUploadFileBytesLengthMap = Maps.newConcurrentMap();
     /**
      * 上传文件速度格式，只保留一位整数，比如13.5kb，25.8kb,3.2mb
@@ -62,11 +65,15 @@ public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgr
     @Override
     public void onFileUploadFinish(String fileIdentifier, String filePath, FileTypeEnum fileType) {
         LOGGER.info("file upload success||filePath={}", filePath);
+        previousUploadFileBytesLengthMap.remove(fileIdentifier);
+        updateUploadFileBytesLengthMap.remove(fileIdentifier);
     }
 
     @Override
     public void onFileUploadFail(String fileIdentifier, String filePath, FileTypeEnum fileType) {
         LOGGER.error("file upload fail||filePath={}", filePath);
+        previousUploadFileBytesLengthMap.remove(fileIdentifier);
+        updateUploadFileBytesLengthMap.remove(fileIdentifier);
     }
 
     @Override

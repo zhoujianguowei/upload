@@ -18,4 +18,17 @@ public class FileHandlerHelperTest {
         assertTrue(splitList.get(1).get(0) == 5);
         assertTrue(splitList.get(2).get(0) == 8);
     }
+
+    @Test
+    public void testFinally() {
+        for (int i = 0; i < 10; i++) {
+            try {
+                if (i < 10) {
+                    return;
+                }
+            } finally {
+                System.out.println("index=" + i);
+            }
+        }
+    }
 }

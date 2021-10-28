@@ -1,6 +1,10 @@
 package common;
 
+import com.sun.org.apache.xerces.internal.util.SymbolHash;
+
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
@@ -11,13 +15,17 @@ public class ResetCountDownLatch extends CountDownLatch {
     private static Field SYNC_FIELD = null;
     private static Field STATE_FIELD = null;
     protected AbstractQueuedSynchronizer sync = null;
+    private static Method SET_STATE_METHOD = null;
+    private volatile int initCount;
 
     static {
         try {
+            SET_STATE_METHOD = AbstractQueuedSynchronizer.class.getDeclaredMethod("setState", int.class);
             SYNC_FIELD = CountDownLatch.class.getDeclaredField("sync");
             STATE_FIELD = AbstractQueuedSynchronizer.class.getDeclaredField("state");
+            SET_STATE_METHOD.setAccessible(true);
             SYNC_FIELD.setAccessible(true);
-        } catch (NoSuchFieldException e) {
+        } catch (Exception e) {
             throw new Error(e);
         }
     }
@@ -31,6 +39,7 @@ public class ResetCountDownLatch extends CountDownLatch {
      */
     public ResetCountDownLatch(int count) {
         super(count);
+        initCount = count;
         try {
             sync = (AbstractQueuedSynchronizer) SYNC_FIELD.get(this);
         } catch (IllegalAccessException e) {
@@ -40,13 +49,20 @@ public class ResetCountDownLatch extends CountDownLatch {
 
     public void reset() {
         try {
-            STATE_FIELD.set(sync, getCount());
-        } catch (IllegalAccessException e) {
+            SET_STATE_METHOD.invoke(sync, initCount);
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void releaseAll() {
-        sync.releaseShared((int) getCount());
+        try {
+            //fixme还是有问题
+            SET_STATE_METHOD.invoke(sync, 0);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 }

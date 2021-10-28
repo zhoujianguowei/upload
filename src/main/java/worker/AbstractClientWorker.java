@@ -22,23 +22,20 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.filefilter.SuffixFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.thrift.util.AllocateSourcesUtils;
 import org.apache.thrift.util.ExecutorUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rpc.thrift.file.transfer.FileTransferWorker;
 import rpc.thrift.file.transfer.FileTypeEnum;
 import rpc.thrift.file.transfer.FileUploadRequest;
-import sun.swing.FilePane;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
@@ -335,13 +332,14 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
             }
             fileLists = new ArrayList<>(FileUtils.listFilesAndDirs(rootFile, fileFilter, DirectoryFileFilter.DIRECTORY));
         }
-
-
+        //排序
+        fileLists.sort(Comparator.comparing(File::getAbsolutePath));
         ResetCountDownLatch countDownLatch = new ResetCountDownLatch(fileLists.size());
         AtomicInteger uploadSuccessFileCount = new AtomicInteger();
         AtomicInteger uploadFailFileCount = new AtomicInteger();
         Semaphore semaphore = new Semaphore(maxParallelUploadFileNum);
         AtomicBoolean terminateUploading = new AtomicBoolean(false);
+
         for (int index = 0; index < fileLists.size(); index++) {
             try {
                 File uploadSingleFileOrDir = fileLists.get(index);
@@ -373,7 +371,6 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                         }
                     }
                 });
-                semaphore.release();
             } catch (InterruptedException e) {
                 LOGGER.warn("interrupted exception||exceptionMsg={}", e.getMessage());
             }
