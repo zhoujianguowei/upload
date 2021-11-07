@@ -19,6 +19,7 @@ import rpc.thrift.file.transfer.FileTransferWorker;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -32,15 +33,29 @@ public class FileTransferServer {
     private static int ACCEPT_QUEUE_PER_THREAD = 1000;
     private static long MAX_READ_BUFFER_BYTES = 256 * 1024 * 1024;
     private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferServer.class);
+    private static final FileTransferServer fileTransferService = new FileTransferServer();
 
+    private FileTransferServer() {
 
-    public static void main(String[] args) throws TTransportException {
+    }
+
+    public static FileTransferServer getSingleTon() {
+        return fileTransferService;
+    }
+
+    public void asyncLaunchFileHandlerService(int port) {
         TProcessor processor = new FileTransferWorker.AsyncProcessor<>(FileTransferServiceImpl.getInstance());
-        TNonblockingServerSocket transport = new TNonblockingServerSocket(
-                new TNonblockingServerSocket.NonblockingAbstractServerSocketArgs()
-                        .port(FILE_HANDLER_SERVER_PORT)
-                        .backlog(BACK_LOG)
-        );
+        TNonblockingServerSocket transport = null;
+        try {
+            transport = new TNonblockingServerSocket(
+                    new TNonblockingServerSocket.NonblockingAbstractServerSocketArgs()
+                            .port(port)
+                            .backlog(BACK_LOG)
+            );
+        } catch (TTransportException e) {
+            LOGGER.error("start handler server exception", e);
+            throw new RuntimeException(e);
+        }
         LOGGER.info("async server start");
         TThreadedSelectorServer.Args serverArgs = new TThreadedSelectorServer.Args(transport);
         serverArgs.processor(processor)
@@ -50,9 +65,24 @@ public class FileTransferServer {
                 .acceptQueueSizePerThread(ACCEPT_QUEUE_PER_THREAD)
                 .executorService(getExecutorService());
         serverArgs.maxReadBufferBytes = MAX_READ_BUFFER_BYTES;
-
         TServer server = new TThreadedSelectorServer(serverArgs);
-        server.serve();
+        CountDownLatch countDownLatch = new CountDownLatch(1);
+        new Thread(() -> {
+            server.serve();
+            countDownLatch.countDown();
+        });
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            LOGGER.warn("interrupted exception||msg={}", e.getMessage());
+        }
+    }
+
+    /**
+     * 启动文件上传服务端
+     */
+    public void asyncLaunchFileHandlerService() {
+        asyncLaunchFileHandlerService(FILE_HANDLER_SERVER_PORT);
     }
 
     public static ExecutorService getExecutorService() {
