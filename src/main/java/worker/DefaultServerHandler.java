@@ -59,6 +59,12 @@ public class DefaultServerHandler extends AbstractServerHandler {
             LOGGER.info("no upload progress,don't need to load");
         }
         for (CachedUploadFileStructure cachedUploadFileStructure : cachedUploadFileStructureList) {
+            String absoluteFilePath = FileHandlerHelper.generateWholePath(cachedUploadFileStructure.getSaveParentFolder(), cachedUploadFileStructure.getRelativePath(), cachedUploadFileStructure.getTmpFileName());
+            File uploadTmpFile = new File(absoluteFilePath);
+            if (!uploadTmpFile.exists() || !uploadTmpFile.isFile() || uploadTmpFile.length() < cachedUploadFileStructure.getCachedFileOffset()) {
+                LOGGER.warn("cached file not exists,remove||cacheFileStructure={}", cachedUploadFileStructure);
+                continue;
+            }
             uploadProgressCacheLoader.put(cachedUploadFileStructure.getFileIdentifier(), cachedUploadFileStructure);
         }
         LOGGER.info("load upload progress success");

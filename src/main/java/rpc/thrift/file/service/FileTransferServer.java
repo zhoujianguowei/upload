@@ -70,7 +70,7 @@ public class FileTransferServer {
         new Thread(() -> {
             server.serve();
             countDownLatch.countDown();
-        });
+        }).start();
         try {
             countDownLatch.await();
         } catch (InterruptedException e) {

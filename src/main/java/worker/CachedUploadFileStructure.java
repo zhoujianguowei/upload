@@ -108,4 +108,20 @@ public class CachedUploadFileStructure {
     public void setRandomAccessFile(RandomAccessFile randomAccessFile) {
         this.randomAccessFile = randomAccessFile;
     }
+
+    @Override
+    public String toString() {
+        return "CachedUploadFileStructure{" +
+                "fileName='" + fileName + '\'' +
+                ", saveParentFolder='" + saveParentFolder + '\'' +
+                ", fileTypeEnum=" + fileTypeEnum +
+                ", relativePath='" + relativePath + '\'' +
+                ", cachedFileOffset=" + cachedFileOffset +
+                ", uploadStartDate=" + uploadStartDate +
+                ", fileIdentifier='" + fileIdentifier + '\'' +
+                ", fileBytesLength=" + fileBytesLength +
+                ", encryptTypeEnum=" + encryptTypeEnum +
+                ", tmpFileName='" + tmpFileName + '\'' +
+                '}';
+    }
 }
