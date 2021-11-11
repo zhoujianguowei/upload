@@ -2,6 +2,7 @@ package config;
 
 import cons.BusinessConstant;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.thrift.util.StorageFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,8 +33,8 @@ public class ConfigDataHelper {
             saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(5)));
             saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, System.getProperty(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, String.valueOf(10033)));
             saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, System.getProperty(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, String.valueOf(Boolean.TRUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, System.getProperty(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, String.valueOf(5)));
             saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, System.getProperty(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, String.valueOf(5)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD, System.getProperty(BusinessConstant.ConfigData.CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD, String.valueOf(StorageFormat.transformSize("1mb", "byte"))));
         } catch (IOException e) {
             throw new RuntimeException("failed to load config");
         }

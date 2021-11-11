@@ -2,8 +2,10 @@ package worker;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.RateLimiter;
 import common.ErrorMeta;
 import common.FileHandlerHelper;
+import config.ConfigDataHelper;
 import cons.BusinessConstant;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +39,11 @@ public abstract class AbstractServerHandler {
      * @return
      */
     abstract boolean authorized(String token, String fileName);
+
+    /**
+     * 客户端限速
+     */
+    protected RateLimiter gloabelRateLimiter = RateLimiter.create(Double.parseDouble(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD)));
 
     protected void shutdown() {
 
@@ -123,6 +130,15 @@ public abstract class AbstractServerHandler {
         return cachedUploadFileStructure;
     }
 
+
+    protected void limitUploadSpeed(FileUploadRequest request, RateLimiter rateLimiter) {
+        if (request.getFileType() == FileTypeEnum.DIR_TYPE) {
+            return;
+        }
+        int uploadBytesLength = request.getBytesLength();
+        rateLimiter.acquire(uploadBytesLength);
+    }
+
     public final FileUploadResponse handleUploadFile(FileUploadRequest request, String token) {
         LOGGER.debug("upload file param||request={}||token={}", request, token);
         ErrorMeta<String> errorMeta = new ErrorMeta<>();
@@ -149,7 +165,7 @@ public abstract class AbstractServerHandler {
                 }
             }
         }
-
+        limitUploadSpeed(request, gloabelRateLimiter);
         try {
             response = doHandleUploadFile(request);
         } catch (Exception e) {
