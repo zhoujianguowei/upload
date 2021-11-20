@@ -67,6 +67,6 @@ public class BusinessConstant {
         /**
          * 客户端最大上传速度，默认限速1M
          */
-        String CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD ="client_upload_limit_speed_threshold";
+        String CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD = "client_upload_limit_speed_threshold";
     }
 }

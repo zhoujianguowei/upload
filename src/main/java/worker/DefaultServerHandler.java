@@ -188,7 +188,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
         }
         //调整上传分段offset值
         if (request.getStartPos() != cachedUploadFileStructure.getCachedFileOffset()) {
-            response.setUploadStatusResult(ResResult.SUCCESS);
+            response.setUploadStatusResult(ResResult.FIX_UPLOAD_OFFSET);
             response.setNextPos(cachedUploadFileStructure.getCachedFileOffset());
             return response;
         }

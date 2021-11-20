@@ -14,7 +14,9 @@ enum ResResult{
     //其它未知错误
     UNKNOWN_ERROR,
     //文件传输完成
-    FILE_END
+    FILE_END,
+    //修正offset，上传文件的时候，断点续传首次传输时候，返回
+    FIX_UPLOAD_OFFSET;
 }
 struct FileUploadResponse{
     1:required ResResult uploadStatusResult;
