@@ -118,7 +118,7 @@ public class StorageFormat {
             }
             return decimalFormat.format(storageValue) + storageUnit.toLowerCase();
         } else {
-            LOGGER.error("not a valid storage format:", initFormat);
+            LOGGER.error("not a valid storage format:{}", initFormat);
             throw new RuntimeException("not a valid storage size format");
         }
     }
