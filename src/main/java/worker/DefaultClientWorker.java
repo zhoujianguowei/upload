@@ -77,6 +77,11 @@ public class DefaultClientWorker extends AbstractClientWorker {
                     }
                     fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, uploadSingleFileOrDir, startPos, randomAccessFile);
                     break;
+                case FIX_UPLOAD_OFFSET:
+                    startPos = uploadResult.nextPos;
+                    LOGGER.info("fix offset ||nextOffset={}||filePath={}", uploadResult.nextPos, uploadSingleFileOrDir.getAbsolutePath());
+                    fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, uploadSingleFileOrDir, startPos, randomAccessFile);
+                    break;
                 default:
                     LOGGER.error("upload result fail,retMsg={}", uploadResult.errorMsg);
                     throw new RuntimeException("upload fail");
