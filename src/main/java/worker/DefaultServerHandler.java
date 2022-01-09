@@ -32,6 +32,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
     protected ScheduledExecutorService syncUploadProgressScheduler = ThreadPoolManager.getServerSyncUploadProgressScheduler();
     protected Future syncUploadProgressFuture;
 
+
     private static class InnerInstance {
         static DefaultServerHandler instance = new DefaultServerHandler();
     }
@@ -71,9 +72,9 @@ public class DefaultServerHandler extends AbstractServerHandler {
     }
 
     protected synchronized void syncUploadProgress() {
-        List<CachedUploadFileStructure> cachedUploadFileStructures = new ArrayList<>(uploadProgressCacheLoader.asMap().values());
-        UploadProgressHelper.persistUploadProgressData(cachedUploadFileStructures);
-        LOGGER.info("sync upload progress success");
+        List<CachedUploadFileStructure> cachedUploadFileStructureList = new ArrayList<>(uploadProgressCacheLoader.asMap().values());
+        UploadProgressHelper.persistUploadProgressData(cachedUploadFileStructureList);
+        LOGGER.info("sync upload progress success||remainFileSize={}", cachedUploadFileStructureList.size());
     }
 
     public static DefaultServerHandler getSingleTon() {
@@ -132,7 +133,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
      * @return
      */
     protected FileUploadResponse handleUploadDir(File parentFileFolder, FileUploadRequest request) {
-        File targetDir = null;
+        File targetDir;
         FileUploadResponse fileUploadResponse = new FileUploadResponse();
         if (parentFileFolder != null) {
             targetDir = new File(parentFileFolder, request.getFileName());
@@ -156,6 +157,25 @@ public class DefaultServerHandler extends AbstractServerHandler {
     }
 
     /**
+     * 获取临时文件
+     *
+     * @param parentFileFolder
+     * @param request
+     * @return
+     */
+    protected File generateTmpFile(File parentFileFolder, FileUploadRequest request) {
+        File tmpFile;
+        CachedUploadFileStructure cachedUploadFileStructure = uploadProgressCacheLoader.getIfPresent(request.getIdentifier());
+        String fileName = request.isEmptyFile() ? cachedUploadFileStructure.getFileName() : cachedUploadFileStructure.getTmpFileName();
+        if (parentFileFolder == null) {
+            tmpFile = new File(fileName);
+        } else {
+            tmpFile = new File(parentFileFolder, fileName);
+        }
+        return tmpFile;
+    }
+
+    /**
      * 处理上传的是文件
      *
      * @param parentFileFolder 上传的父目录
@@ -166,12 +186,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
         FileUploadResponse response = new FileUploadResponse();
         CachedUploadFileStructure cachedUploadFileStructure = uploadProgressCacheLoader.getIfPresent(request.getIdentifier());
         RandomAccessFile randomAccessFile = cachedUploadFileStructure.getRandomAccessFile();
-        File tmpFile;
-        if (parentFileFolder == null) {
-            tmpFile = new File(cachedUploadFileStructure.getTmpFileName());
-        } else {
-            tmpFile = new File(parentFileFolder, cachedUploadFileStructure.getTmpFileName());
-        }
+        File tmpFile = generateTmpFile(parentFileFolder, request);
         //首次上传或者是从离线日志中同步
         if (randomAccessFile == null) {
             synchronized (this) {
@@ -192,6 +207,17 @@ public class DefaultServerHandler extends AbstractServerHandler {
             response.setNextPos(cachedUploadFileStructure.getCachedFileOffset());
             return response;
         }
+        if (request.isEmptyFile()) {
+            try {
+                randomAccessFile.close();
+                response.setUploadStatusResult(ResResult.FILE_END);
+                onFileUploadFinish(request.getIdentifier(), tmpFile.getAbsolutePath(), request.getFileType());
+                return response;
+            } catch (IOException e) {
+                LOGGER.error("close io exception", e);
+                throw new RuntimeException(e);
+            }
+        }
         try {
             randomAccessFile.seek(request.startPos);
             byte[] segmentContents = request.getContents();
@@ -210,8 +236,8 @@ public class DefaultServerHandler extends AbstractServerHandler {
                     LOGGER.warn("failed to rename file||tmpFilePath={}||realFilePath={}", tmpFile.getAbsolutePath(), realFile.getAbsoluteFile());
                 }
                 response.setUploadStatusResult(ResResult.FILE_END);
-                //清除缓存的上传文件进度信息
-                uploadProgressCacheLoader.invalidate(request.getIdentifier());
+                onFileUploadFinish(request.getIdentifier(), realFile.getAbsolutePath(), request.getFileType());
+
             } else {
                 response.setUploadStatusResult(ResResult.SUCCESS);
             }
@@ -224,6 +250,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
                     LOGGER.error("io exception", e);
                 }
             }
+            onFileUploadFail(request.getIdentifier(), tmpFile.getAbsolutePath(), request.getFileType());
             throw new RuntimeException("failed to write file");
         }
         return response;
@@ -301,4 +328,6 @@ public class DefaultServerHandler extends AbstractServerHandler {
         }
         return response;
     }
+
+
 }

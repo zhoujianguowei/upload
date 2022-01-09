@@ -1,7 +1,5 @@
 package common;
 
-import com.sun.org.apache.xerces.internal.util.SymbolHash;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

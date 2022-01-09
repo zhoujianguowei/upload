@@ -94,7 +94,7 @@ public class RemoteRpcNode {
     /**
      * 关闭连接
      */
-    protected synchronized void destroyConnection() {
+    protected synchronized void releaseConnectionIfNecessary() {
         if (!connectionAlive) {
             return;
         }

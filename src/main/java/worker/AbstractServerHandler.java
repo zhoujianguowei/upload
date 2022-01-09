@@ -2,15 +2,16 @@ package worker;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.util.concurrent.RateLimiter;
 import common.ErrorMeta;
 import common.FileHandlerHelper;
-import config.ConfigDataHelper;
 import cons.BusinessConstant;
+import handler.UploadFileProgressCallback;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import rpc.thrift.file.limit.DefaultUploadLimit;
+import rpc.thrift.file.limit.UploadLimit;
 import rpc.thrift.file.transfer.FileTypeEnum;
 import rpc.thrift.file.transfer.FileUploadRequest;
 import rpc.thrift.file.transfer.FileUploadResponse;
@@ -25,13 +26,17 @@ import static rpc.thrift.file.transfer.FileTypeEnum.FILE_TYPE;
 /**
  * 处理文件上传、下载的抽象父类
  */
-public abstract class AbstractServerHandler {
+public abstract class AbstractServerHandler implements UploadFileProgressCallback {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractServerHandler.class);
     /**
      * 单个文件上传最大允许上传间隔时长，其中key表示{@link FileUploadRequest#identifier}唯一标识，value表示上传文件结构
      */
     protected Cache<String, CachedUploadFileStructure> uploadProgressCacheLoader = CacheBuilder.newBuilder().
             expireAfterAccess(7, TimeUnit.DAYS).build();
+    /**
+     * 默认限流策略
+     */
+    protected UploadLimit uploadLimit = new DefaultUploadLimit();
 
     /**
      * 是否允许上传
@@ -41,15 +46,17 @@ public abstract class AbstractServerHandler {
      */
     abstract boolean authorized(String token, String fileName);
 
-    /**
-     * 客户端全局限速
-     */
-    protected RateLimiter globalRateLimiter = RateLimiter.create(Double.parseDouble(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD)));
 
     protected void shutdown() {
 
     }
 
+    /**
+     * 校验文件标识符，用来唯一标示当前上传的文件
+     *
+     * @param request
+     * @return
+     */
     protected ErrorMeta<String> validateRequestIdentifier(FileUploadRequest request) {
         String identifier = request.getIdentifier();
         ErrorMeta<String> errorMeta = new ErrorMeta<>();
@@ -69,7 +76,8 @@ public abstract class AbstractServerHandler {
         FileTypeEnum fileTypeEnum = request.getFileType();
         ErrorMeta<String> errorMeta = new ErrorMeta<>();
         errorMeta.combine(validateRequestIdentifier(request));
-        if (fileTypeEnum == FileTypeEnum.DIR_TYPE) {
+        //当前上传的是目录或者是空文件
+        if (fileTypeEnum == FileTypeEnum.DIR_TYPE || request.isEmptyFile()) {
             if (!errorMeta.isLegal()) {
                 return errorMeta;
             }
@@ -150,14 +158,9 @@ public abstract class AbstractServerHandler {
      * 全局限速
      *
      * @param request
-     * @param rateLimiter
      */
-    protected void limitUploadSpeed(FileUploadRequest request, RateLimiter rateLimiter) {
-        if (request.getFileType() == FileTypeEnum.DIR_TYPE) {
-            return;
-        }
-        int uploadBytesLength = request.getBytesLength();
-        rateLimiter.acquire(uploadBytesLength);
+    protected void limitUploadSpeed(FileUploadRequest request) {
+        uploadLimit.blockLimit(request);
     }
 
     public final FileUploadResponse handleUploadFile(FileUploadRequest request, String token) {
@@ -187,7 +190,7 @@ public abstract class AbstractServerHandler {
                 }
             }
         }
-        limitUploadSpeed(request, globalRateLimiter);
+        limitUploadSpeed(request);
         try {
             response = doHandleUploadFile(request);
         } catch (Exception e) {
@@ -195,5 +198,27 @@ public abstract class AbstractServerHandler {
             response.setUploadStatusResult(ResResult.UNKNOWN_ERROR);
         }
         return response;
+    }
+
+    @Override
+    public void onFileUploadFinish(String fileIdentifier, String filePath, FileTypeEnum fileType) {
+        //清除缓存的上传文件进度信息
+        uploadProgressCacheLoader.invalidate(fileIdentifier);
+        LOGGER.info("file upload success||filePath={}||identifier={}", filePath, fileIdentifier);
+    }
+
+    @Override
+    public void onFileUploadFail(String fileIdentifier, String filePath, FileTypeEnum fileType) {
+
+    }
+
+    @Override
+    public void onFileCancel(String fileIdentifier, String filePath, FileTypeEnum fileType) {
+
+    }
+
+    @Override
+    public void onFileUploadProgress(String fileIdentifier, String filePath, long fileBytesLength, long uploadFileBytesLength) {
+
     }
 }

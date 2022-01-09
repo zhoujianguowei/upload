@@ -36,5 +36,7 @@ struct FileUploadRequest{
 	11:optional EncryptTypeEnum encryptedType;
 	//文件总字节大小
 	12:optional i64 totalFileLength;
+	//上传文件时候，表示当前文件大小是否为0，如果大小为0，需要显示设置为false
+	13:optional bool emptyFile=false;
 	}
 

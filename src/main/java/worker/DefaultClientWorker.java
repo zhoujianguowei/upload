@@ -46,7 +46,7 @@ public class DefaultClientWorker extends AbstractClientWorker {
                                                   RandomAccessFile randomAccessFile, FileTransferWorker.Client client) throws Exception {
         long startPos = 0L;
         //文件传输失败内容错误最大重试次数
-        int brokerRetryTimes = 3;
+        int brokerRetryTimes = 0;
         long preBrokerOffset = -1L;
         String absoluteFilePath = uploadSingleFileOrDir.getAbsolutePath();
         int maxBrokerRetryTimes = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES));

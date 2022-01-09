@@ -2,6 +2,7 @@ package common;
 
 import cons.BusinessConstant;
 import cons.CommonConstant;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +61,9 @@ public class FileHandlerHelper {
      * @return
      */
     public static String generateContentsCheckSum(byte[] contents, int length) {
+        if (ArrayUtils.isEmpty(contents)) {
+            return "0";
+        }
         CRC32 crc32 = new CRC32();
         crc32.update(contents, 0, length);
         return Long.toHexString(crc32.getValue());

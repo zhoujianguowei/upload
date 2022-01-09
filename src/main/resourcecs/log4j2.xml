@@ -41,7 +41,7 @@
 
 
     <Loggers>
-        <Root level="debug">
+        <Root level="INFO">
             <AppenderRef ref="stdout"/>
             <AppenderRef ref="Async_INFO_LOG"/>
             <AppenderRef ref="Async_WARN_LOG" level="WARN"/>

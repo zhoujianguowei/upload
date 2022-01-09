@@ -137,12 +137,20 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
             request.setFileType(FileTypeEnum.FILE_TYPE);
             request.setStartPos(startPos);
             request.setTotalFileLength(file.length());
+            int readBytesLength = 0;
             int perUploadSegmentLength = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH));
             byte[] segmentContents = new byte[perUploadSegmentLength];
-            accessFile.seek(startPos);
-            int readBytesLength = accessFile.read(segmentContents);
-            request.setContents(segmentContents);
-            request.setBytesLength(readBytesLength);
+            /**
+             * 如果上传的是空文件，显示设置空文件标识{@link FileUploadRequest#setEmptyFile(boolean)}
+             */
+            if (file.length() > 0) {
+                accessFile.seek(startPos);
+                readBytesLength = accessFile.read(segmentContents);
+                request.setContents(segmentContents);
+                request.setBytesLength(readBytesLength);
+            } else {
+                request.setEmptyFile(true);
+            }
             request.setCheckSum(FileHandlerHelper.generateContentsCheckSum(segmentContents, readBytesLength));
         }
         return request;
@@ -185,7 +193,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
             LOGGER.warn("failed to create remote connection||host={}||port={}", remoteHost, remotePort);
             return false;
         }
-        remoteRpcNode.destroyConnection();
+        remoteRpcNode.releaseConnectionIfNecessary();
         return true;
     }
 
@@ -235,14 +243,9 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      */
     protected ClientUploadStatus uploadSingleFile(File uploadSingleFile, String saveParentPath, File rootFile, String remoteHost, int remotePort, int connectionTimeout) {
         RemoteRpcNode remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
-        ClientUploadStatus clientUploadStatus = ClientUploadStatus.FAIL;
+        ClientUploadStatus clientUploadStatus;
         String relativePath = getRelativePath(rootFile, uploadSingleFile);
         while (true) {
-            if (uploadSingleFile.isFile() && uploadSingleFile.length() <= 0L) {
-                LOGGER.warn("file lack content,ignore||filePath={}", uploadSingleFile.getAbsolutePath());
-                clientUploadStatus = ClientUploadStatus.ABORT;
-                break;
-            }
             if (!remoteRpcNode.createRemoteConnectionWithMaxTryCount(maxCreateConnectionTryTimes)) {
                 clientUploadStatus = ClientUploadStatus.FAIL;
                 break;
@@ -272,12 +275,12 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                     terminalAll = true;
                     break;
                 case RECREATE_CONNECTION_THEN_ABORT:
-                    remoteRpcNode.destroyConnection();
+                    remoteRpcNode.releaseConnectionIfNecessary();
                     remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
                     goOn = false;
                     break;
                 case RECREATE_CONNECTION_THEN_RETRY:
-                    remoteRpcNode.destroyConnection();
+                    remoteRpcNode.releaseConnectionIfNecessary();
                     remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
                     goOn = true;
                     break;
@@ -295,6 +298,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
             }
             break;
         }
+        remoteRpcNode.releaseConnectionIfNecessary();
         return clientUploadStatus;
     }
 
