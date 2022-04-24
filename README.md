@@ -19,8 +19,8 @@
 启动服务端，默认端口是10033。
 
 ~~~java
- FileTransferServer fileTransferServer = FileTransferServer.getSingleTon();
- fileTransferServer.asyncLaunchFileHandlerService();
+ FileTransferServer fileTransferServer=FileTransferServer.getSingleTon();
+        fileTransferServer.asyncLaunchFileHandlerService();
 ~~~
 
 ### 启动客户端

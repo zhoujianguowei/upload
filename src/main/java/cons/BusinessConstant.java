@@ -12,6 +12,7 @@ public class BusinessConstant {
      * 上传的文件临时名称
      */
     public static final String TMP_UPLOAD_FILE_NAME_SUFFIX = ".tmp";
+
     /**
      * 文件上传失败错误信息
      */

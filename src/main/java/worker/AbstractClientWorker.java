@@ -380,9 +380,10 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                     uploadSuccessFileCount.get(), uploadFailFileCount.get());
             LOGGER.info("upload finish");
         } catch (InterruptedException e) {
-            LOGGER.error("interrupted exception", e);
+            LOGGER.error("upload interrupted exception", e);
         } finally {
-            shutdown();
+            //资源释放由于客户端手动指定
+//            shutdown();
         }
     }
 

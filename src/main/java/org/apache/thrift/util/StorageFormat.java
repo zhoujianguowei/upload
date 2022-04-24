@@ -155,6 +155,7 @@ public class StorageFormat {
 
         protected static long unitSize = 1024L;//默认采用1024作为单位
         private String unitName;
+
         StorageUnitEnum(String unitName) {
             this.unitName = unitName;
         }

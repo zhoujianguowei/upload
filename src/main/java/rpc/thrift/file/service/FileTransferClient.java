@@ -1,5 +1,6 @@
 package rpc.thrift.file.service;
 
+import com.google.common.util.concurrent.Service;
 import handler.UploadFileProgressCallback;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -15,6 +16,10 @@ public class FileTransferClient {
     private static final int CONNECTION_TIME_OUT = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferClient.class);
     private UploadFileProgressCallback uploadFileProgressCallback;
+    /**
+     * 客户端上传状态，只有两种状态，开始和结束标示
+     */
+    private Service.State state = Service.State.NEW;
 
     public void uploadFile(String uploadFileOrDirPath, String host) {
         this.uploadFile(null, uploadFileOrDirPath, host);
@@ -40,9 +45,13 @@ public class FileTransferClient {
      * @param host                服务端ip地址
      * @param port                服务端端口
      */
-    public void uploadFile(String saveParentPath, String uploadFileOrDirPath, String host,
-                           int port, int connectionTimeOut, String[] nameFilters) {
+    public synchronized void uploadFile(String saveParentPath, String uploadFileOrDirPath, String host,
+                                        int port, int connectionTimeOut, String[] nameFilters) {
         File file = new File(uploadFileOrDirPath);
+        if (Service.State.NEW != state) {
+            LOGGER.error("client has stopped");
+            throw new RuntimeException("client has been stopped");
+        }
         if (!file.exists() || !file.canRead()) {
             throw new IllegalArgumentException(String.format("path %s not exits or can't execute", uploadFileOrDirPath));
         }
@@ -60,8 +69,19 @@ public class FileTransferClient {
         return uploadFileProgressCallback;
     }
 
-
     public void setUploadFileProgressCallback(UploadFileProgressCallback uploadFileProgressCallback) {
         this.uploadFileProgressCallback = uploadFileProgressCallback;
+    }
+
+    /**
+     * 结束客户端上传，客户上传完成后，上传进程终止
+     */
+    public synchronized void shutdown() {
+        if (state == Service.State.TERMINATED) {
+            LOGGER.warn("upload client has been stopped");
+            return;
+        }
+        DefaultClientWorker.getSingleTon().shutdown();
+        LOGGER.info("upload client shutdown success");
     }
 }
