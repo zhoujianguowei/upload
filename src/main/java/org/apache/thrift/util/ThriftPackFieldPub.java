@@ -7,9 +7,9 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 
 public class ThriftPackFieldPub {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ThriftPackFieldPub.class);
     public static Field FRAME_BUFFER_FIELD;
     public static Field TRANS_FIELD;
-    private static final Logger LOGGER = LoggerFactory.getLogger(ThriftPackFieldPub.class);
 
     static {
         try {

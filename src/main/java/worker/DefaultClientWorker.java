@@ -25,10 +25,6 @@ public class DefaultClientWorker extends AbstractClientWorker {
         super(terminalType);
     }
 
-    private static class InnerInstance {
-        static DefaultClientWorker outerInstance = new DefaultClientWorker(BusinessConstant.CLIENT_TERMINAL_TYPE);
-    }
-
     public static DefaultClientWorker getSingleTon() {
         return InnerInstance.outerInstance;
     }
@@ -135,5 +131,9 @@ public class DefaultClientWorker extends AbstractClientWorker {
     @Override
     public void shutdown() {
         super.shutdown();
+    }
+
+    private static class InnerInstance {
+        static DefaultClientWorker outerInstance = new DefaultClientWorker(BusinessConstant.CLIENT_TERMINAL_TYPE);
     }
 }

@@ -36,7 +36,7 @@ public class ResetCountDownLatchTest {
             }
             resetCountDownLatch.await();
             System.out.println("main thread finish round2");
-            ExecutorUtil.gracefulShutdown(service,1000);
+            ExecutorUtil.gracefulShutdown(service, 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -61,7 +61,7 @@ public class ResetCountDownLatchTest {
             System.out.println("main thread is waiting");
             resetCountDownLatch.await();
             System.out.println("main thread finish");
-            ExecutorUtil.gracefulShutdown(service,1000);
+            ExecutorUtil.gracefulShutdown(service, 1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

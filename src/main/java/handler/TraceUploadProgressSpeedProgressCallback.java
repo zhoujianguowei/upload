@@ -15,6 +15,14 @@ import java.util.Map;
  */
 public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgressCallback {
     private static final Logger LOGGER = LoggerFactory.getLogger(TraceUploadProgressSpeedProgressCallback.class);
+    /**
+     * 上传文件速度格式，只保留一位整数，比如13.5kb，25.8kb,3.2mb
+     */
+    private static final String UPLOAD_SPEED_FORMAT = "0.0";
+    /**
+     * 上传文件进度格式，保留2位小数
+     */
+    private static final DecimalFormat UPLOAD_PROGRESS_NUMBER_FORMAT = new DecimalFormat("0.00%");
     private Map<String, Float> preUploadProcess = Maps.newConcurrentMap();
     /**
      * 用来评估文件上传速度，key是{@link rpc.thrift.file.transfer.FileUploadRequest#identifier}
@@ -24,14 +32,6 @@ public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgr
      * 用来追溯文件上传大小
      */
     private Map<String, SimpleUploadProgress> updateUploadFileBytesLengthMap = Maps.newConcurrentMap();
-    /**
-     * 上传文件速度格式，只保留一位整数，比如13.5kb，25.8kb,3.2mb
-     */
-    private static final String UPLOAD_SPEED_FORMAT = "0.0";
-    /**
-     * 上传文件进度格式，保留2位小数
-     */
-    private static final DecimalFormat UPLOAD_PROGRESS_NUMBER_FORMAT = new DecimalFormat("0.00%");
 
     public TraceUploadProgressSpeedProgressCallback() {
     }

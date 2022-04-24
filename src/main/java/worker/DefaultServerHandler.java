@@ -33,13 +33,13 @@ public class DefaultServerHandler extends AbstractServerHandler {
     protected Future syncUploadProgressFuture;
 
 
-    private static class InnerInstance {
-        static DefaultServerHandler instance = new DefaultServerHandler();
-    }
-
     private DefaultServerHandler() {
         loadUploadProgress();
         syncUploadProgressFuture = syncUploadProgressScheduler.scheduleAtFixedRate(() -> syncUploadProgress(), 5, 10, TimeUnit.SECONDS);
+    }
+
+    public static DefaultServerHandler getSingleTon() {
+        return InnerInstance.instance;
     }
 
     @Override
@@ -75,10 +75,6 @@ public class DefaultServerHandler extends AbstractServerHandler {
         List<CachedUploadFileStructure> cachedUploadFileStructureList = new ArrayList<>(uploadProgressCacheLoader.asMap().values());
         UploadProgressHelper.persistUploadProgressData(cachedUploadFileStructureList);
         LOGGER.info("sync upload progress success||remainFileSize={}", cachedUploadFileStructureList.size());
-    }
-
-    public static DefaultServerHandler getSingleTon() {
-        return InnerInstance.instance;
     }
 
     @Override
@@ -327,6 +323,10 @@ public class DefaultServerHandler extends AbstractServerHandler {
                 break;
         }
         return response;
+    }
+
+    private static class InnerInstance {
+        static DefaultServerHandler instance = new DefaultServerHandler();
     }
 
 

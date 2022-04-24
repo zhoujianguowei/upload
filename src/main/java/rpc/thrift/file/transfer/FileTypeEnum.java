@@ -20,13 +20,6 @@ public enum FileTypeEnum implements org.apache.thrift.TEnum {
     }
 
     /**
-     * Get the integer value of this enum value, as defined in the Thrift IDL.
-     */
-    public int getValue() {
-        return value;
-    }
-
-    /**
      * Find a the enum type by its integer value, as defined in the Thrift IDL.
      *
      * @return null if the value is not found.
@@ -41,5 +34,12 @@ public enum FileTypeEnum implements org.apache.thrift.TEnum {
             default:
                 return null;
         }
+    }
+
+    /**
+     * Get the integer value of this enum value, as defined in the Thrift IDL.
+     */
+    public int getValue() {
+        return value;
     }
 }

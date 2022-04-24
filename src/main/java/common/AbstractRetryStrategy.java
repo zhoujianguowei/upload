@@ -22,14 +22,14 @@ import java.util.function.Function;
 public abstract class AbstractRetryStrategy<B, T> implements RetryStrategy<B, T> {
 
     /**
-     * 记录内部重试信息,key表示重试类型，val表示目前为止重试次数
-     */
-    protected Map<String, AtomicInteger> retryRecordInfoMap = Maps.newConcurrentMap();
-    /**
      * 最大重试次数
      */
     protected static final int MAX_RETRY_COUNT = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT));
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRetryStrategy.class);
+    /**
+     * 记录内部重试信息,key表示重试类型，val表示目前为止重试次数
+     */
+    protected Map<String, AtomicInteger> retryRecordInfoMap = Maps.newConcurrentMap();
 
     @Override
     public RetryStrategyEnum doRetryOrNot(B o, Function<B, String> function, T t) {

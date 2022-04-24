@@ -5,8 +5,9 @@ import org.junit.Test;
 
 public class FileTransferClientTest {
 
-    private String serverHost = "192.168.0.110";
+    private String serverHost = "192.168.43.71";
     private FileTransferClient fileTransferClient;
+
     @Before
     public void before() {
         fileTransferClient = new FileTransferClient();
@@ -14,7 +15,7 @@ public class FileTransferClientTest {
 
     @Test
     public void uploadFile() {
-        fileTransferClient.uploadFile("E:/test/aabbbcc", "E:/课件/面试", serverHost);
+        fileTransferClient.uploadFile("/Users/zhoubenjin/Documents/video", "E:\\youtube\\武庚纪", serverHost);
 
     }
 }

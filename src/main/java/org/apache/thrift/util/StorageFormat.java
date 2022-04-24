@@ -153,16 +153,10 @@ public class StorageFormat {
         GB("gb"), TB("tb"),
         PB("pb"), EB("eb"), ZB("zb");
 
-        StorageUnitEnum(String unitName) {
-            this.unitName = unitName;
-        }
-
         protected static long unitSize = 1024L;//默认采用1024作为单位
         private String unitName;
-
-        @Override
-        public String toString() {
-            return super.toString();
+        StorageUnitEnum(String unitName) {
+            this.unitName = unitName;
         }
 
         /**
@@ -174,6 +168,11 @@ public class StorageFormat {
          */
         static double transUnitTransform(int originUnitIndex, int transformUnitIndex) {
             return Math.pow(unitSize, originUnitIndex - transformUnitIndex);
+        }
+
+        @Override
+        public String toString() {
+            return super.toString();
         }
     }
 }

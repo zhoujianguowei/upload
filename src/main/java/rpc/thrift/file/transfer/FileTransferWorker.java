@@ -24,19 +24,6 @@ public class FileTransferWorker {
     }
 
     public static class Client extends org.apache.thrift.TServiceClient implements Iface {
-        public static class Factory implements org.apache.thrift.TServiceClientFactory<Client> {
-            public Factory() {
-            }
-
-            public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
-                return new Client(prot);
-            }
-
-            public Client getClient(org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TProtocol oprot) {
-                return new Client(iprot, oprot);
-            }
-        }
-
         public Client(org.apache.thrift.protocol.TProtocol prot) {
             super(prot, prot);
         }
@@ -66,9 +53,33 @@ public class FileTransferWorker {
             throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "uploadFile failed: unknown result");
         }
 
+        public static class Factory implements org.apache.thrift.TServiceClientFactory<Client> {
+            public Factory() {
+            }
+
+            public Client getClient(org.apache.thrift.protocol.TProtocol prot) {
+                return new Client(prot);
+            }
+
+            public Client getClient(org.apache.thrift.protocol.TProtocol iprot, org.apache.thrift.protocol.TProtocol oprot) {
+                return new Client(iprot, oprot);
+            }
+        }
+
     }
 
     public static class AsyncClient extends org.apache.thrift.async.TAsyncClient implements AsyncIface {
+        public AsyncClient(org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.async.TAsyncClientManager clientManager, org.apache.thrift.transport.TNonblockingTransport transport) {
+            super(protocolFactory, clientManager, transport);
+        }
+
+        public void uploadFile(rpc.thrift.file.transfer.FileUploadRequest req, java.lang.String token, org.apache.thrift.async.AsyncMethodCallback<rpc.thrift.file.transfer.FileUploadResponse> resultHandler) throws org.apache.thrift.TException {
+            checkReady();
+            uploadFile_call method_call = new uploadFile_call(req, token, resultHandler, this, ___protocolFactory, ___transport);
+            this.___currentMethod = method_call;
+            ___manager.call(method_call);
+        }
+
         public static class Factory implements org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
             private org.apache.thrift.async.TAsyncClientManager clientManager;
             private org.apache.thrift.protocol.TProtocolFactory protocolFactory;
@@ -81,17 +92,6 @@ public class FileTransferWorker {
             public AsyncClient getAsyncClient(org.apache.thrift.transport.TNonblockingTransport transport) {
                 return new AsyncClient(protocolFactory, clientManager, transport);
             }
-        }
-
-        public AsyncClient(org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.async.TAsyncClientManager clientManager, org.apache.thrift.transport.TNonblockingTransport transport) {
-            super(protocolFactory, clientManager, transport);
-        }
-
-        public void uploadFile(rpc.thrift.file.transfer.FileUploadRequest req, java.lang.String token, org.apache.thrift.async.AsyncMethodCallback<rpc.thrift.file.transfer.FileUploadResponse> resultHandler) throws org.apache.thrift.TException {
-            checkReady();
-            uploadFile_call method_call = new uploadFile_call(req, token, resultHandler, this, ___protocolFactory, ___transport);
-            this.___currentMethod = method_call;
-            ___manager.call(method_call);
         }
 
         public static class uploadFile_call extends org.apache.thrift.async.TAsyncMethodCall<rpc.thrift.file.transfer.FileUploadResponse> {
@@ -249,87 +249,13 @@ public class FileTransferWorker {
     }
 
     public static class uploadFile_args implements org.apache.thrift.TBase<uploadFile_args, uploadFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<uploadFile_args> {
-        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("uploadFile_args");
-
-        private static final org.apache.thrift.protocol.TField REQ_FIELD_DESC = new org.apache.thrift.protocol.TField("req", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
-        private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRING, (short) 2);
-
-        private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new uploadFile_argsStandardSchemeFactory();
-        private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new uploadFile_argsTupleSchemeFactory();
-
-        public @org.apache.thrift.annotation.Nullable
-        rpc.thrift.file.transfer.FileUploadRequest req; // required
-        public @org.apache.thrift.annotation.Nullable
-        java.lang.String token; // required
-
-        /**
-         * The set of fields this struct contains, along with convenience methods for finding and manipulating them.
-         */
-        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            REQ((short) 1, "req"),
-            TOKEN((short) 2, "token");
-
-            private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
-
-            static {
-                for (_Fields field : java.util.EnumSet.allOf(_Fields.class)) {
-                    byName.put(field.getFieldName(), field);
-                }
-            }
-
-            /**
-             * Find the _Fields constant that matches fieldId, or null if its not found.
-             */
-            @org.apache.thrift.annotation.Nullable
-            public static _Fields findByThriftId(int fieldId) {
-                switch (fieldId) {
-                    case 1: // REQ
-                        return REQ;
-                    case 2: // TOKEN
-                        return TOKEN;
-                    default:
-                        return null;
-                }
-            }
-
-            /**
-             * Find the _Fields constant that matches fieldId, throwing an exception
-             * if it is not found.
-             */
-            public static _Fields findByThriftIdOrThrow(int fieldId) {
-                _Fields fields = findByThriftId(fieldId);
-                if (fields == null)
-                    throw new java.lang.IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-                return fields;
-            }
-
-            /**
-             * Find the _Fields constant that matches name, or null if its not found.
-             */
-            @org.apache.thrift.annotation.Nullable
-            public static _Fields findByName(java.lang.String name) {
-                return byName.get(name);
-            }
-
-            private final short _thriftId;
-            private final java.lang.String _fieldName;
-
-            _Fields(short thriftId, java.lang.String fieldName) {
-                _thriftId = thriftId;
-                _fieldName = fieldName;
-            }
-
-            public short getThriftFieldId() {
-                return _thriftId;
-            }
-
-            public java.lang.String getFieldName() {
-                return _fieldName;
-            }
-        }
-
         // isset id assignments
         public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("uploadFile_args");
+        private static final org.apache.thrift.protocol.TField REQ_FIELD_DESC = new org.apache.thrift.protocol.TField("req", org.apache.thrift.protocol.TType.STRUCT, (short) 1);
+        private static final org.apache.thrift.protocol.TField TOKEN_FIELD_DESC = new org.apache.thrift.protocol.TField("token", org.apache.thrift.protocol.TType.STRING, (short) 2);
+        private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new uploadFile_argsStandardSchemeFactory();
+        private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new uploadFile_argsTupleSchemeFactory();
 
         static {
             java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -340,6 +266,11 @@ public class FileTransferWorker {
             metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(uploadFile_args.class, metaDataMap);
         }
+
+        public @org.apache.thrift.annotation.Nullable
+        rpc.thrift.file.transfer.FileUploadRequest req; // required
+        public @org.apache.thrift.annotation.Nullable
+        java.lang.String token; // required
 
         public uploadFile_args() {
         }
@@ -362,6 +293,10 @@ public class FileTransferWorker {
             if (other.isSetToken()) {
                 this.token = other.token;
             }
+        }
+
+        private static <S extends org.apache.thrift.scheme.IScheme> S scheme(org.apache.thrift.protocol.TProtocol proto) {
+            return (org.apache.thrift.scheme.StandardScheme.class.equals(proto.getScheme()) ? STANDARD_SCHEME_FACTORY : TUPLE_SCHEME_FACTORY).getScheme();
         }
 
         public uploadFile_args deepCopy() {
@@ -623,6 +558,72 @@ public class FileTransferWorker {
             }
         }
 
+        /**
+         * The set of fields this struct contains, along with convenience methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            REQ((short) 1, "req"),
+            TOKEN((short) 2, "token");
+
+            private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
+
+            static {
+                for (_Fields field : java.util.EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            private final short _thriftId;
+            private final java.lang.String _fieldName;
+
+            _Fields(short thriftId, java.lang.String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its not found.
+             */
+            @org.apache.thrift.annotation.Nullable
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                    case 1: // REQ
+                        return REQ;
+                    case 2: // TOKEN
+                        return TOKEN;
+                    default:
+                        return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if (fields == null)
+                    throw new java.lang.IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not found.
+             */
+            @org.apache.thrift.annotation.Nullable
+            public static _Fields findByName(java.lang.String name) {
+                return byName.get(name);
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public java.lang.String getFieldName() {
+                return _fieldName;
+            }
+        }
+
         private static class uploadFile_argsStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
             public uploadFile_argsStandardScheme getScheme() {
                 return new uploadFile_argsStandardScheme();
@@ -723,88 +724,15 @@ public class FileTransferWorker {
                 }
             }
         }
-
-        private static <S extends org.apache.thrift.scheme.IScheme> S scheme(org.apache.thrift.protocol.TProtocol proto) {
-            return (org.apache.thrift.scheme.StandardScheme.class.equals(proto.getScheme()) ? STANDARD_SCHEME_FACTORY : TUPLE_SCHEME_FACTORY).getScheme();
-        }
     }
 
     public static class uploadFile_result implements org.apache.thrift.TBase<uploadFile_result, uploadFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<uploadFile_result> {
-        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("uploadFile_result");
-
-        private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short) 0);
-
-        private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new uploadFile_resultStandardSchemeFactory();
-        private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new uploadFile_resultTupleSchemeFactory();
-
-        public @org.apache.thrift.annotation.Nullable
-        rpc.thrift.file.transfer.FileUploadResponse success; // required
-
-        /**
-         * The set of fields this struct contains, along with convenience methods for finding and manipulating them.
-         */
-        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-            SUCCESS((short) 0, "success");
-
-            private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
-
-            static {
-                for (_Fields field : java.util.EnumSet.allOf(_Fields.class)) {
-                    byName.put(field.getFieldName(), field);
-                }
-            }
-
-            /**
-             * Find the _Fields constant that matches fieldId, or null if its not found.
-             */
-            @org.apache.thrift.annotation.Nullable
-            public static _Fields findByThriftId(int fieldId) {
-                switch (fieldId) {
-                    case 0: // SUCCESS
-                        return SUCCESS;
-                    default:
-                        return null;
-                }
-            }
-
-            /**
-             * Find the _Fields constant that matches fieldId, throwing an exception
-             * if it is not found.
-             */
-            public static _Fields findByThriftIdOrThrow(int fieldId) {
-                _Fields fields = findByThriftId(fieldId);
-                if (fields == null)
-                    throw new java.lang.IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-                return fields;
-            }
-
-            /**
-             * Find the _Fields constant that matches name, or null if its not found.
-             */
-            @org.apache.thrift.annotation.Nullable
-            public static _Fields findByName(java.lang.String name) {
-                return byName.get(name);
-            }
-
-            private final short _thriftId;
-            private final java.lang.String _fieldName;
-
-            _Fields(short thriftId, java.lang.String fieldName) {
-                _thriftId = thriftId;
-                _fieldName = fieldName;
-            }
-
-            public short getThriftFieldId() {
-                return _thriftId;
-            }
-
-            public java.lang.String getFieldName() {
-                return _fieldName;
-            }
-        }
-
         // isset id assignments
         public static final java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+        private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("uploadFile_result");
+        private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.STRUCT, (short) 0);
+        private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new uploadFile_resultStandardSchemeFactory();
+        private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new uploadFile_resultTupleSchemeFactory();
 
         static {
             java.util.Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new java.util.EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
@@ -813,6 +741,9 @@ public class FileTransferWorker {
             metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
             org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(uploadFile_result.class, metaDataMap);
         }
+
+        public @org.apache.thrift.annotation.Nullable
+        rpc.thrift.file.transfer.FileUploadResponse success; // required
 
         public uploadFile_result() {
         }
@@ -830,6 +761,10 @@ public class FileTransferWorker {
             if (other.isSetSuccess()) {
                 this.success = new rpc.thrift.file.transfer.FileUploadResponse(other.success);
             }
+        }
+
+        private static <S extends org.apache.thrift.scheme.IScheme> S scheme(org.apache.thrift.protocol.TProtocol proto) {
+            return (org.apache.thrift.scheme.StandardScheme.class.equals(proto.getScheme()) ? STANDARD_SCHEME_FACTORY : TUPLE_SCHEME_FACTORY).getScheme();
         }
 
         public uploadFile_result deepCopy() {
@@ -1016,6 +951,69 @@ public class FileTransferWorker {
             }
         }
 
+        /**
+         * The set of fields this struct contains, along with convenience methods for finding and manipulating them.
+         */
+        public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+            SUCCESS((short) 0, "success");
+
+            private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
+
+            static {
+                for (_Fields field : java.util.EnumSet.allOf(_Fields.class)) {
+                    byName.put(field.getFieldName(), field);
+                }
+            }
+
+            private final short _thriftId;
+            private final java.lang.String _fieldName;
+
+            _Fields(short thriftId, java.lang.String fieldName) {
+                _thriftId = thriftId;
+                _fieldName = fieldName;
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, or null if its not found.
+             */
+            @org.apache.thrift.annotation.Nullable
+            public static _Fields findByThriftId(int fieldId) {
+                switch (fieldId) {
+                    case 0: // SUCCESS
+                        return SUCCESS;
+                    default:
+                        return null;
+                }
+            }
+
+            /**
+             * Find the _Fields constant that matches fieldId, throwing an exception
+             * if it is not found.
+             */
+            public static _Fields findByThriftIdOrThrow(int fieldId) {
+                _Fields fields = findByThriftId(fieldId);
+                if (fields == null)
+                    throw new java.lang.IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+                return fields;
+            }
+
+            /**
+             * Find the _Fields constant that matches name, or null if its not found.
+             */
+            @org.apache.thrift.annotation.Nullable
+            public static _Fields findByName(java.lang.String name) {
+                return byName.get(name);
+            }
+
+            public short getThriftFieldId() {
+                return _thriftId;
+            }
+
+            public java.lang.String getFieldName() {
+                return _fieldName;
+            }
+        }
+
         private static class uploadFile_resultStandardSchemeFactory implements org.apache.thrift.scheme.SchemeFactory {
             public uploadFile_resultStandardScheme getScheme() {
                 return new uploadFile_resultStandardScheme();
@@ -1099,10 +1097,6 @@ public class FileTransferWorker {
                     struct.setSuccessIsSet(true);
                 }
             }
-        }
-
-        private static <S extends org.apache.thrift.scheme.IScheme> S scheme(org.apache.thrift.protocol.TProtocol proto) {
-            return (org.apache.thrift.scheme.StandardScheme.class.equals(proto.getScheme()) ? STANDARD_SCHEME_FACTORY : TUPLE_SCHEME_FACTORY).getScheme();
         }
     }
 

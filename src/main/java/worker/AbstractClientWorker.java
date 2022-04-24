@@ -1,11 +1,7 @@
 package worker;
 
 import com.google.common.collect.Maps;
-import common.ClientUploadStatus;
-import common.FileHandlerHelper;
-import common.ResetCountDownLatch;
-import common.RetryStrategyEnum;
-import common.ThreadPoolManager;
+import common.*;
 import config.ConfigDataHelper;
 import cons.BusinessConstant;
 import cons.CommonConstant;
@@ -15,11 +11,7 @@ import handler.RetryStrategy;
 import handler.TraceUploadProgressSpeedProgressCallback;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOCase;
-import org.apache.commons.io.filefilter.DirectoryFileFilter;
-import org.apache.commons.io.filefilter.FileFileFilter;
-import org.apache.commons.io.filefilter.FileFilterUtils;
-import org.apache.commons.io.filefilter.IOFileFilter;
-import org.apache.commons.io.filefilter.SuffixFileFilter;
+import org.apache.commons.io.filefilter.*;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.util.ExecutorUtil;
@@ -36,11 +28,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -57,8 +45,6 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      * 标志位，标记{@link #traceUploadProgressSpeedProgressCallback}是否已添加
      */
     protected boolean speedListenerAppend = false;
-    private ScheduledExecutorService measureUploadRateScheduler = ThreadPoolManager.getClientAcquireUploadSpeedScheduler();
-    private Future traceUploadSpeedFuture;
     /**
      * 打印文件上传进度
      */
@@ -71,16 +57,18 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      * 一些hook调用，文件上传完成或者失败时候一些资源的释放，比如io的释放
      */
     protected Map<String, Runnable> hookMap = Maps.newConcurrentMap();
-    /**
-     * 如果上传的是文件夹，过滤上传的文件类型
-     */
-    private String[] nameFilters;
     //并发上传文件数量
     protected int maxParallelUploadFileNum = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM));
     /**
      * 建立rpc连接最大重试次数
      */
     protected int maxCreateConnectionTryTimes = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES));
+    private ScheduledExecutorService measureUploadRateScheduler = ThreadPoolManager.getClientAcquireUploadSpeedScheduler();
+    private Future traceUploadSpeedFuture;
+    /**
+     * 如果上传的是文件夹，过滤上传的文件类型
+     */
+    private String[] nameFilters;
 
     public AbstractClientWorker(String terminalType) {
         this(terminalType, null);

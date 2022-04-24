@@ -23,11 +23,10 @@
  fileTransferServer.asyncLaunchFileHandlerService();
 ~~~
 
-
-
 ### 启动客户端
 
-客户端是**FileTransferClient**类，客户端支持指定上传文件保存到指定的目录，支持按照文件名方式进行过滤上传。支持上传进度回调。（目前默认实现类是**TraceUploadProgressSpeedProgressCallback**）
+客户端是**FileTransferClient**类，客户端支持指定上传文件保存到指定的目录，支持按照文件名方式进行过滤上传。支持上传进度回调。（目前默认实现类是**
+TraceUploadProgressSpeedProgressCallback**）
 
 ~~~
 String serverHost = "192.168.0.110";
@@ -96,8 +95,6 @@ public class FileTransferClient {
 }
 ~~~
 
-
-
 ## 运行截图
 
 客户端的上传进度截图
@@ -109,11 +106,11 @@ public class FileTransferClient {
 版本以为分支名称作为标准。
 
 - v1.0
-   - 文件、文件夹批量上传功能开发完成，支持文件数据内容校验、支持断点上传
-   - 支持文件上传进度回调
+    - 文件、文件夹批量上传功能开发完成，支持文件数据内容校验、支持断点上传
+    - 支持文件上传进度回调
 - v1.1
-  - 支持自定义异常重试
-  - 增加多种自定义配置
+    - 支持自定义异常重试
+    - 增加多种自定义配置
 
 
 

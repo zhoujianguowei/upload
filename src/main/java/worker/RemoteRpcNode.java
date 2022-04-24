@@ -14,6 +14,7 @@ import rpc.thrift.file.transfer.FileTransferWorker;
  * 远程rpc连接
  */
 public class RemoteRpcNode {
+    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRpcNode.class);
     private String host;
     private int port;
     private TSocket tSocket;
@@ -24,7 +25,6 @@ public class RemoteRpcNode {
      * 当前连接是否关闭
      */
     private volatile boolean connectionAlive = false;
-    private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRpcNode.class);
 
     public RemoteRpcNode(String host, int port) {
         this(host, port, 5000);

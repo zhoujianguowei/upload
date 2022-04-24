@@ -35,11 +35,11 @@ public class FileHandlerHelper {
      */
     private static final String TOKEN_SUFFIX = "788532LKLKSG@KJKLGS71sd8u52352";
     private static final Logger LOGGER = LoggerFactory.getLogger(FileHandlerHelper.class);
-    private static String deviceIdentifier;
     /**
      * 兜底的文件设备标识
      */
     private static final String BOTTOM_DEVICE_IDENTIFIER = "bottomDeviceIdentifier";
+    private static String deviceIdentifier;
 
     static {
         int index = 0;

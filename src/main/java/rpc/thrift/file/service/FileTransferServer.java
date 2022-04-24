@@ -19,21 +19,17 @@ import rpc.thrift.file.transfer.FileTransferWorker;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 
 public class FileTransferServer {
+    private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferServer.class);
+    private static final FileTransferServer fileTransferService = new FileTransferServer();
     public static int FILE_HANDLER_SERVER_PORT = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT));
     public static int BACK_LOG = 100;
     private static int SELECTOR_THREADS = 16;
     private static int ACCEPT_QUEUE_PER_THREAD = 1000;
     private static long MAX_READ_BUFFER_BYTES = 256 * 1024 * 1024;
-    private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferServer.class);
-    private static final FileTransferServer fileTransferService = new FileTransferServer();
 
     private FileTransferServer() {
 
@@ -41,6 +37,28 @@ public class FileTransferServer {
 
     public static FileTransferServer getSingleTon() {
         return fileTransferService;
+    }
+
+    public static ExecutorService getExecutorService() {
+        return new ThreadPoolExecutor(10, 100, 60, TimeUnit.MINUTES, new LinkedBlockingQueue<>(20000),
+                new DefaultThreadFactory("async_thrift_executor_thread"), (r, t) -> {
+            LOGGER.warn("out of queue,drop job", r);
+        }) {
+            @Override
+            public void execute(Runnable command) {
+                AbstractNonblockingServer.FrameBuffer fb = null;
+                try {
+                    fb = (AbstractNonblockingServer.FrameBuffer) ThriftPackFieldPub.FRAME_BUFFER_FIELD.get(command);
+                    TNonblockingSocket socket = (TNonblockingSocket) ThriftPackFieldPub.TRANS_FIELD.get(fb);
+                    InetSocketAddress address = (InetSocketAddress) socket.getSocketChannel().getRemoteAddress();
+                    InetAddress inetAddress = address.getAddress();
+                    LOGGER.debug("remoteIp={}||remotePort={}||remoteHostName={}", inetAddress.getHostAddress(), address.getPort(), inetAddress.getHostName());
+                    super.execute(command);
+                } catch (Exception e) {
+                    LOGGER.error("failed to access remote address", e);
+                }
+            }
+        };
     }
 
     public void asyncLaunchFileHandlerService(int port) {
@@ -83,27 +101,5 @@ public class FileTransferServer {
      */
     public void asyncLaunchFileHandlerService() {
         asyncLaunchFileHandlerService(FILE_HANDLER_SERVER_PORT);
-    }
-
-    public static ExecutorService getExecutorService() {
-        return new ThreadPoolExecutor(10, 100, 60, TimeUnit.MINUTES, new LinkedBlockingQueue<>(20000),
-                new DefaultThreadFactory("async_thrift_executor_thread"), (r, t) -> {
-            LOGGER.warn("out of queue,drop job", r);
-        }) {
-            @Override
-            public void execute(Runnable command) {
-                AbstractNonblockingServer.FrameBuffer fb = null;
-                try {
-                    fb = (AbstractNonblockingServer.FrameBuffer) ThriftPackFieldPub.FRAME_BUFFER_FIELD.get(command);
-                    TNonblockingSocket socket = (TNonblockingSocket) ThriftPackFieldPub.TRANS_FIELD.get(fb);
-                    InetSocketAddress address = (InetSocketAddress) socket.getSocketChannel().getRemoteAddress();
-                    InetAddress inetAddress = address.getAddress();
-                    LOGGER.debug("remoteIp={}||remotePort={}||remoteHostName={}", inetAddress.getHostAddress(), address.getPort(), inetAddress.getHostName());
-                    super.execute(command);
-                } catch (Exception e) {
-                    LOGGER.error("failed to access remote address", e);
-                }
-            }
-        };
     }
 }

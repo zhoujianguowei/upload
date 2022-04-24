@@ -12,9 +12,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 public class ResetCountDownLatch extends CountDownLatch {
     private static Field SYNC_FIELD = null;
     private static Field STATE_FIELD = null;
-    protected AbstractQueuedSynchronizer sync = null;
     private static Method SET_STATE_METHOD = null;
-    private volatile int initCount;
 
     static {
         try {
@@ -27,6 +25,9 @@ public class ResetCountDownLatch extends CountDownLatch {
             throw new Error(e);
         }
     }
+
+    protected AbstractQueuedSynchronizer sync = null;
+    private volatile int initCount;
 
     /**
      * Constructs a {@code CountDownLatch} initialized with the given count.

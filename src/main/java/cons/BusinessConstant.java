@@ -6,6 +6,12 @@ import handler.TraceUploadProgressSpeedProgressCallback;
  * 业务类常量
  */
 public class BusinessConstant {
+    public static final String SERVER_TERMINAL_TYPE = "server_terminal";
+    public static final String CLIENT_TERMINAL_TYPE = "client_terminal";
+    /**
+     * 上传的文件临时名称
+     */
+    public static final String TMP_UPLOAD_FILE_NAME_SUFFIX = ".tmp";
     /**
      * 文件上传失败错误信息
      */
@@ -20,13 +26,6 @@ public class BusinessConstant {
         String FILE_WRITE_BYTES_LENGTH_OVER_FLOW = "写入文件超过文件总大小";
 
     }
-
-    public static final String SERVER_TERMINAL_TYPE = "server_terminal";
-    public static final String CLIENT_TERMINAL_TYPE = "client_terminal";
-    /**
-     * 上传的文件临时名称
-     */
-    public static final String TMP_UPLOAD_FILE_NAME_SUFFIX = ".tmp";
 
     /**
      * 配置文件内容
