@@ -25,7 +25,8 @@
 
 ### 启动客户端
 
-客户端是**FileTransferClient**类，客户端支持指定上传文件保存到指定的目录，支持按照文件名方式进行过滤上传。支持上传进度回调。（目前默认实现类是**
+客户端是**FileTransferClient**
+类，客户端支持指定上传文件保存到指定的目录，支持按照文件名方式进行过滤上传。支持上传进度回调。（目前默认实现类是**
 TraceUploadProgressSpeedProgressCallback**）
 
 ~~~
