@@ -55,11 +55,11 @@ public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgr
                 continue;
             }
             long diffUploadBytesLength = updateUploadProgress.getUploadBytesLength() - preUploadProgress.getUploadBytesLength();
-            LOGGER.info("upload rate||rate={}||filePath={}", StorageFormat.formatStorageSize(String.valueOf(diffUploadBytesLength) + "byte", UPLOAD_SPEED_FORMAT), updateUploadProgress.getFilePath());
+//            LOGGER.info("upload rate||rate={}||filePath={}", StorageFormat.formatStorageSize(String.valueOf(diffUploadBytesLength) + "byte", UPLOAD_SPEED_FORMAT), updateUploadProgress.getFilePath());
             totalUploadBytesPerSecond += diffUploadBytesLength;
             preUploadProgress.setUploadBytesLength(updateUploadProgress.getUploadBytesLength());
         }
-        LOGGER.info("total upload rate||rate={}", StorageFormat.formatStorageSize(String.valueOf(totalUploadBytesPerSecond) + "byte", UPLOAD_SPEED_FORMAT));
+        LOGGER.info("upload rate||rate={}", StorageFormat.formatStorageSize(String.valueOf(totalUploadBytesPerSecond) + "byte", UPLOAD_SPEED_FORMAT));
     }
 
     protected boolean showUpdateUploadProgress(String fileIdentifier, float currentUpdateProgress) {
