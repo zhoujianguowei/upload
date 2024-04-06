@@ -1,6 +1,7 @@
 package rpc.thrift.file.service;
 
 import com.google.common.util.concurrent.Service;
+import common.FileHandlerHelper;
 import handler.UploadFileProgressCallback;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -13,7 +14,7 @@ import java.io.File;
 public class FileTransferClient {
 
 
-    private static final int CONNECTION_TIME_OUT = 5000;
+    public static final int CONNECTION_TIME_OUT = 5000;
     private static final Logger LOGGER = LoggerFactory.getLogger(FileTransferClient.class);
     private UploadFileProgressCallback uploadFileProgressCallback;
     /**
@@ -63,6 +64,11 @@ public class FileTransferClient {
             clientWorker.setNameFilters(nameFilters);
         }
         clientWorker.clientUploadFile(saveParentPath, file, host, port, connectionTimeOut);
+    }
+
+    public boolean createConnection(String host, int port, int connectTimeout) {
+        AbstractClientWorker clientWorker = DefaultClientWorker.getSingleTon();
+        return clientWorker.detectConnection(host, port, connectTimeout);
     }
 
     public UploadFileProgressCallback getUploadFileProgressCallback() {
