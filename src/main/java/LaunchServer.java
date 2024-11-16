@@ -20,7 +20,8 @@ public class LaunchServer {
         try {
             CommandLine commandLine = commandLineParser.parse(options, args);
             if (commandLine.hasOption("receive_limit_mb")) {
-                limit = Integer.parseInt("receive_limit_mb");
+                limit = Integer.parseInt(commandLine.getOptionValue("receive_limit_mb"));
+                LOGGER.info("change default upload speed={}", StorageFormat.formatStorageSize(String.format("%sbyte", limit)));
             }
             ConfigDataHelper.saveStoreConfigData(BusinessConstant.ConfigData.CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD, String.valueOf(StorageFormat.transformSize(limit + "mb", "byte")));
         } catch (Exception e) {
