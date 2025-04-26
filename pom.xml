@@ -12,6 +12,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <slf4j.version>1.7.21</slf4j.version>
         <log4j2.version>2.12.1</log4j2.version>
+        <maven-source-plugin.version>3.2.1</maven-source-plugin.version> <!-- 新增：指定插件版本 -->
     </properties>
 
     <dependencies>
@@ -143,9 +144,11 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            <!-- Maven 源代码打包插件（修正配置） -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>${maven-source-plugin.version}</version> <!-- 使用属性指定版本 -->
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -155,21 +158,31 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <!-- Maven 装配插件（修正 XML 格式） -->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.4.1</version>
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>Async</mainClass>
+                            <mainClass>command.LaunchServer</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
-                        <descriptorRef>
-                            jar-with-dependencies
-                        </descriptorRef>
+                        <descriptorRef>jar-with-dependencies</descriptorRef> <!-- 移除换行符 -->
                     </descriptorRefs>
                 </configuration>
+                <!-- 显式绑定到 package 阶段（可选，但更可靠） -->
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

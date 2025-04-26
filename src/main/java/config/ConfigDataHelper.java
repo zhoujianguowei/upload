@@ -35,6 +35,7 @@ public class ConfigDataHelper {
             saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, System.getProperty(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, String.valueOf(Boolean.TRUE)));
             saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, System.getProperty(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, String.valueOf(5)));
             saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD, System.getProperty(BusinessConstant.ConfigData.CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD, String.valueOf(StorageFormat.transformSize("1mb", "byte"))));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, System.getProperty(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, String.valueOf(3)));
         } catch (IOException e) {
             throw new RuntimeException("failed to load config");
         }
