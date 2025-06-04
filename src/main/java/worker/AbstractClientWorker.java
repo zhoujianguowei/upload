@@ -204,22 +204,32 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
     }
 
     protected String getRelativePath(File rootFile, File uploadSingleFile) {
-        //根目录或者文件路径
-        String rootFileAbsolutePath = rootFile.getAbsolutePath();
-        String rootFileName = rootFile.getName();
-        String parentFilePath = StringUtils.isBlank(rootFile.getParent()) ? "" : rootFile.getParent();
-        String uploadSingleFileAbsolutePath = uploadSingleFile.getAbsolutePath();
-
-        //获取相对于根目录的相对路径,比如当前根目录是d:/test，对应子目录是d:/test/nice/mv.mp4，那么相对路径就是test/nice
-        String relativePath = null;
-        if (!uploadSingleFileAbsolutePath.startsWith(rootFileAbsolutePath)) {
-            return relativePath;
+        if (rootFile == null || uploadSingleFile == null) {
+            return null;
         }
-        //相对路径
-        int rootFilePathSplit = rootFileName.indexOf(parentFilePath) + parentFilePath.length() + 1;
-        relativePath = uploadSingleFile.getParent().substring(rootFilePathSplit).replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR);
-        return relativePath;
+        if (!rootFile.isDirectory()) {
+            return null; // 确保根路径是一个目录
+        }
+        String rootAbsPath = rootFile.getAbsolutePath();
+        String uploadAbsPath = uploadSingleFile.getAbsolutePath();
+
+        // 确保路径比较时处理结尾分隔符不一致的情况
+        if (!uploadAbsPath.equals(rootAbsPath) &&
+                !uploadAbsPath.startsWith(rootAbsPath + File.separator)) {
+            return null;
+        }
+
+        String relativePath = uploadAbsPath.substring(rootAbsPath.length());
+        // 移除可能的前导分隔符（包括根路径结尾无分隔符的情况）
+        if (!relativePath.isEmpty() &&
+                (relativePath.charAt(0) == File.separatorChar)) {
+            relativePath = relativePath.substring(1);
+        }
+
+        // 替换路径分隔符为Linux风格
+        return relativePath.replace(File.separatorChar+StringUtils.EMPTY, CommonConstant.LINUX_SHELL_SEPARATOR);
     }
+
 
     /**
      * 单个文件上传，支持内部重试
