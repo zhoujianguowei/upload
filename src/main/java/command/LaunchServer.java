@@ -2,6 +2,7 @@ package command;
 
 import config.ConfigDataHelper;
 import cons.BusinessConstant;
+import cons.DefaultConfigConstant;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +18,7 @@ public class LaunchServer {
         Option portOption = Option.builder("p")
                 .longOpt(portOptionKey)
                 .desc("server port")
-                .hasArg(true)
+                .hasArg()
                 .build();
         Option helpOption = Option.builder("h")
                 .longOpt("help")
@@ -25,7 +26,7 @@ public class LaunchServer {
                 .hasArg(false)
                 .build();
         options.addOption(portOption).addOption(helpOption);
-        Integer port = Integer.valueOf(System.getProperty(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, String.valueOf(10033)));
+        Integer port = DefaultConfigConstant.UPLOAD_SERVER_PORT;
         try {
 
             // 2. 创建解析器并解析参数

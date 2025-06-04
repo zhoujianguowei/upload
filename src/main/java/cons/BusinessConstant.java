@@ -65,7 +65,7 @@ public class BusinessConstant {
          */
         String CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES = "client_create_connection_max_try_times";
         /**
-         * 客户端最大上传速度，默认限速1M
+         * 客户端最大上传速度，默认限速100M
          */
         String CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD = "client_upload_limit_speed_threshold";
     }

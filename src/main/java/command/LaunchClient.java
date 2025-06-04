@@ -1,5 +1,6 @@
 package command;
 
+import cons.DefaultConfigConstant;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ public class LaunchClient {
 
     public static void main(String[] args) {
         Options options = createOptions();
-        CommandLine cmd = null;
+        CommandLine cmd;
         try {
             // 1. 解析命令行参数
             CommandLineParser parser = new DefaultParser();
@@ -58,7 +59,6 @@ public class LaunchClient {
                 .longOpt("port")
                 .desc("映射的端口（1-65535）")
                 .hasArg()
-                .required()
                 .type(Integer.class)
                 .build();
         // 3. 上传路径选项 (-up, --upload)
@@ -89,6 +89,9 @@ public class LaunchClient {
     }
 
     private static Integer getPort(CommandLine cmd) {
+        if (!cmd.hasOption("p")) {
+            return DefaultConfigConstant.UPLOAD_SERVER_PORT;
+        }
         try {
             Integer port = Integer.valueOf(cmd.getOptionValue("p"));
             if (port < 1 || port > 65535) {
