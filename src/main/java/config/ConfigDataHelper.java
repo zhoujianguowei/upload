@@ -27,20 +27,20 @@ public class ConfigDataHelper {
 
     public static void loadConfigData() {
         try {
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, 
-                System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(102400)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, 
-                System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(3)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, 
-                System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(5)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, 
-                System.getProperty(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, String.valueOf(10033)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, 
-                System.getProperty(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, String.valueOf(Boolean.TRUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, 
-                System.getProperty(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, String.valueOf(5)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, 
-                System.getProperty(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, String.valueOf(5)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH,
+                System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH_VALUE)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES,
+                System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES_VALUE)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM,
+                System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM_VALUE)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT,
+                System.getProperty(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, String.valueOf(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT_VALUE)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH,
+                System.getProperty(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, String.valueOf(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH_VALUE)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT,
+                System.getProperty(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, String.valueOf(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT_VALUE)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES,
+                System.getProperty(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, String.valueOf(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES_VALUE)));
         } catch (IOException e) {
             throw new RuntimeException("failed to load config", e);
         }
@@ -120,5 +120,25 @@ public class ConfigDataHelper {
             }
         }
         return defaultValue;
+    }
+
+    /**
+     * 获取文件上传保存的父目录，默认值为 user.home/Download
+     */
+    public static String getFileUploadSaveParentPath() {
+        String defaultPath = BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH_VALUE;
+        String value = getStoreConfigData(BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH);
+        return StringUtils.isNotBlank(value) ? value : defaultPath;
+    }
+
+    /**
+     * 设置文件上传保存的父目录
+     */
+    public static void setFileUploadSaveParentPath(String path) {
+        try {
+            saveStoreConfigData(BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH, path);
+        } catch (IOException e) {
+            LOGGER.error("failed to save file upload save parent path", e);
+        }
     }
 }

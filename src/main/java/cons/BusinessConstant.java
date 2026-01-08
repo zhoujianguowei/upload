@@ -40,29 +40,41 @@ public class BusinessConstant {
          * 一次上传的字节数,默认100kb
          */
         String PER_UPLOAD_BYTES_LENGTH = "per_upload_bytes_length";
+        int PER_UPLOAD_BYTES_LENGTH_VALUE = 102400;
         /**
          * 文件上传过程中，由于网络原因导致字节错误的最大重试次数，默认3次
          */
         String FILE_CONTENT_BROKER_MAX_RETRY_TIMES = "file_content_broker_max_retry_times";
+        int FILE_CONTENT_BROKER_MAX_RETRY_TIMES_VALUE = 3;
         /**
          * 批量上传的最大文件个数，默认5个
          */
         String MAX_PARALLEL_UPDATE_FILE_NUM = "max_parallel_upload_file_num";
+        int MAX_PARALLEL_UPDATE_FILE_NUM_VALUE = 5;
         /**
          * 文件上传rpc server端的默认端口
          */
         String TRANSFER_FILE_SERVER_PORT = "upload_file_server_port";
+        int TRANSFER_FILE_SERVER_PORT_VALUE = 10033;
         /**
          * 是否展示客户端上传速度，如果设置为true的话，那么默认会添加{@link TraceUploadProgressSpeedProgressCallback}监听类
          */
         String TRACE_CLIENT_UPLOAD_SPEED_SWITCH = "show_client_upload_speed";
+        boolean TRACE_CLIENT_UPLOAD_SPEED_SWITCH_VALUE = true;
         /**
          * 文件上传最大重试次数，这个重试次数限制的是文件重试的类型。包括异常重试、非异常重试等
          */
         String FILE_UPLOAD_MAX_RETRY_COUNT = "file_upload_max_retry_count";
+        int FILE_UPLOAD_MAX_RETRY_COUNT_VALUE = 5;
         /**
          * 客户端建立rpc连接最大重试次数，默认5次
          */
         String CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES = "client_create_connection_max_try_times";
+        int CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES_VALUE = 5;
+        /**
+         * 文件上传保存的父目录
+         */
+        String FILE_UPLOAD_SAVE_PARENT_PATH = "file_upload_save_parent_path";
+        String FILE_UPLOAD_SAVE_PARENT_PATH_VALUE = System.getProperty("user.home") + "/Download";
     }
 }

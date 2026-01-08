@@ -13,6 +13,7 @@ import rpc.thrift.file.transfer.FileTypeEnum;
 import rpc.thrift.file.transfer.FileUploadRequest;
 import rpc.thrift.file.transfer.FileUploadResponse;
 import rpc.thrift.file.transfer.ResResult;
+import rpc.thrift.file.service.FileTransferServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +59,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
         if (CollectionUtils.isEmpty(cachedUploadFileStructureList)) {
             LOGGER.info("no upload progress,don't need to load");
         }
-        String saveParentPath = System.getProperty("user.home") + "/Download";
+        String saveParentPath = FileTransferServer.getFileUploadSaveParentPath();
         for (CachedUploadFileStructure cachedUploadFileStructure : cachedUploadFileStructureList) {
             String absoluteFilePath = FileHandlerHelper.generateWholePath(saveParentPath, cachedUploadFileStructure.getRelativePath(), cachedUploadFileStructure.getTmpFileName());
             File uploadTmpFile = new File(absoluteFilePath);
@@ -93,7 +94,7 @@ public class DefaultServerHandler extends AbstractServerHandler {
      * @return
      */
     protected File createParentFileIfNotExists(FileUploadRequest request) {
-        String saveParentPath = System.getProperty("user.home") + "/Download";
+        String saveParentPath = FileTransferServer.getFileUploadSaveParentPath();
         String relativePath = request.getRelativePath();
         File parentFile = new File(saveParentPath.replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR));
         if (!parentFile.exists()) {

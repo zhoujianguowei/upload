@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 
 public class FileTransferServer {
-    public static int FILE_HANDLER_SERVER_PORT = Integer.parseInt(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT));
+    public static int FILE_HANDLER_SERVER_PORT = ConfigDataHelper.getIntConfig(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT_VALUE);
     public static int BACK_LOG = 100;
     private static int SELECTOR_THREADS = 16;
     private static int ACCEPT_QUEUE_PER_THREAD = 1000;
@@ -105,5 +105,13 @@ public class FileTransferServer {
                 }
             }
         };
+    }
+
+    public static String getFileUploadSaveParentPath() {
+        return ConfigDataHelper.getFileUploadSaveParentPath();
+    }
+
+    public static void setFileUploadSaveParentPath(String path) {
+        ConfigDataHelper.setFileUploadSaveParentPath(path);
     }
 }
