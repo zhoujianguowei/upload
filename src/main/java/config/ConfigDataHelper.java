@@ -27,15 +27,22 @@ public class ConfigDataHelper {
 
     public static void loadConfigData() {
         try {
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(102400)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(3)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(5)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, System.getProperty(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, String.valueOf(10033)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, System.getProperty(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, String.valueOf(Boolean.TRUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, System.getProperty(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, String.valueOf(5)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, System.getProperty(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, String.valueOf(5)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, 
+                System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(102400)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, 
+                System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(3)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, 
+                System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(5)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, 
+                System.getProperty(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, String.valueOf(10033)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, 
+                System.getProperty(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, String.valueOf(Boolean.TRUE)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, 
+                System.getProperty(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, String.valueOf(5)));
+            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, 
+                System.getProperty(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, String.valueOf(5)));
         } catch (IOException e) {
-            throw new RuntimeException("failed to load config");
+            throw new RuntimeException("failed to load config", e);
         }
     }
 
@@ -61,9 +68,13 @@ public class ConfigDataHelper {
             }
         }
         Properties properties = new Properties();
-        properties.load(new FileInputStream(storeFile));
+        try (FileInputStream fis = new FileInputStream(storeFile)) {
+            properties.load(fis);
+        }
         properties.setProperty(key, configData);
-        properties.store(new FileOutputStream(storeFile), "config data");
+        try (FileOutputStream fos = new FileOutputStream(storeFile)) {
+            properties.store(fos, "config data");
+        }
     }
 
     public static String getStoreConfigData(String configKey) {
@@ -71,9 +82,9 @@ public class ConfigDataHelper {
         if (!storeFile.exists() || !storeFile.isFile()) {
             return null;
         }
-        try {
+        try (FileInputStream fis = new FileInputStream(storeFile)) {
             Properties properties = new Properties();
-            properties.load(new FileInputStream(storeFile));
+            properties.load(fis);
             return properties.getProperty(configKey);
         } catch (IOException e) {
             LOGGER.error("file io exception||filePath=" + storeFile.getAbsolutePath(), e);
