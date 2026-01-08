@@ -10,7 +10,8 @@ public enum ClientUploadStatus {
     FAIL("上传失败"), 
     UPLOAD_FINISH("上传完成"),
     TERMINATE_ALL("终止所有上传任务"),
-    PENDING("等待上传");
+    PENDING("等待上传"),
+    RESUME("继续上传");
     
     private String status;
 
@@ -32,5 +33,19 @@ public enum ClientUploadStatus {
             }
         }
         return null;
+    }
+    
+    /**
+     * 判断是否为完成状态
+     */
+    public boolean isFinished() {
+        return this == UPLOAD_FINISH || this == FAIL || this == ABORT;
+    }
+    
+    /**
+     * 判断是否为运行中状态
+     */
+    public boolean isRunning() {
+        return this == ONGOING || this == PENDING;
     }
 }

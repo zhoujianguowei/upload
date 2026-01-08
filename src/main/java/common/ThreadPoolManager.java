@@ -20,10 +20,11 @@ public class ThreadPoolManager {
      */
     private static final ScheduledExecutorService clientAcquireUploadSpeedScheduler = Executors.newSingleThreadScheduledExecutor();
     /**
-     * 控制文件并发上传,最大线程数50
+     * 控制文件并发上传,核心线程数10，最大线程数50
      */
     private static final ExecutorService clientParallelUploadFileNumExecutorService = new ThreadPoolExecutor(
-            10, 50, 60, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+            10, 50, 60, TimeUnit.SECONDS, new LinkedBlockingDeque<>(), 
+            new NamedThreadFactory("file-upload-pool"));
 
     public static ScheduledExecutorService getServerSyncUploadProgressScheduler() {
         return serverSyncUploadProgressScheduler;

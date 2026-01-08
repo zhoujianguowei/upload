@@ -91,4 +91,34 @@ public class ConfigDataHelper {
         }
         return null;
     }
+    
+    /**
+     * 获取整型配置值
+     */
+    public static int getIntConfig(String key, int defaultValue) {
+        String value = getStoreConfigData(key);
+        if (value != null) {
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                LOGGER.warn("Invalid integer config value for key: " + key + ", using default: " + defaultValue);
+            }
+        }
+        return defaultValue;
+    }
+    
+    /**
+     * 获取布尔型配置值
+     */
+    public static boolean getBooleanConfig(String key, boolean defaultValue) {
+        String value = getStoreConfigData(key);
+        if (value != null) {
+            try {
+                return Boolean.parseBoolean(value);
+            } catch (NumberFormatException e) {
+                LOGGER.warn("Invalid boolean config value for key: " + key + ", using default: " + defaultValue);
+            }
+        }
+        return defaultValue;
+    }
 }
