@@ -1,13 +1,12 @@
 package rpc.thrift.file.service;
 
 import handler.UploadFileProgressCallback;
+import java.io.File;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import worker.AbstractClientWorker;
 import worker.DefaultClientWorker;
-
-import java.io.File;
 
 public class FileTransferClient {
 
@@ -17,7 +16,7 @@ public class FileTransferClient {
     private UploadFileProgressCallback uploadFileProgressCallback;
 
     public void uploadFile(String uploadFileOrDirPath, String host) {
-        this.uploadFile(uploadFileOrDirPath, host);
+        this.uploadFile(uploadFileOrDirPath, host, null);
     }
 
     public void uploadFile(String uploadFileOrDirPath, String host, String[] nameFilters) {
