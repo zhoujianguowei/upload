@@ -42,8 +42,8 @@ public class DefaultClientWorker extends AbstractClientWorker {
         return ClientUploadStatus.UPLOAD_FINISH;
     }
 
-    protected ClientUploadStatus handleUploadFile(FileUploadRequest fileUploadRequest, String saveParentPath, String relativePath, File uploadSingleFileOrDir,
-                                                  RandomAccessFile randomAccessFile, FileTransferWorker.Client client) throws Exception {
+    protected ClientUploadStatus handleUploadFile(FileUploadRequest fileUploadRequest, String relativePath, File uploadSingleFileOrDir,
+                                                   RandomAccessFile randomAccessFile, FileTransferWorker.Client client) throws Exception {
         long startPos = 0L;
         //文件传输失败内容错误最大重试次数
         int brokerRetryTimes = 3;
@@ -58,7 +58,7 @@ public class DefaultClientWorker extends AbstractClientWorker {
                     return ClientUploadStatus.UPLOAD_FINISH;
                 case SUCCESS:
                     startPos = uploadResult.nextPos;
-                    fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, uploadSingleFileOrDir, startPos, randomAccessFile);
+                    fileUploadRequest = constructFileUploadRequest(relativePath, uploadSingleFileOrDir, startPos, randomAccessFile);
                     onFileUploadProgress(fileUploadRequest.getIdentifier(),
                             absoluteFilePath, fileUploadRequest.getTotalFileLength(), uploadResult.nextPos);
                     break;
@@ -75,7 +75,7 @@ public class DefaultClientWorker extends AbstractClientWorker {
                                 brokerRetryTimes, maxBrokerRetryTimes, preBrokerOffset);
                         return ClientUploadStatus.FAIL;
                     }
-                    fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, uploadSingleFileOrDir, startPos, randomAccessFile);
+                    fileUploadRequest = constructFileUploadRequest(relativePath, uploadSingleFileOrDir, startPos, randomAccessFile);
                     break;
                 default:
                     LOGGER.error("upload result fail,retMsg={}", uploadResult.errorMsg);
@@ -87,14 +87,13 @@ public class DefaultClientWorker extends AbstractClientWorker {
     /**
      * 上传单个文件或者文件夹
      *
-     * @param saveParentPath
      * @param relativePath
      * @param uploadSingleFileOrDir
      * @param client
      * @return
      */
     @Override
-    public ClientUploadStatus doUploadSingleFile(String saveParentPath, String relativePath,
+    public ClientUploadStatus doUploadSingleFile(String relativePath,
                                                  File uploadSingleFileOrDir, FileTransferWorker.Client client, FileUploadRequest[] fileUploadRequests) throws Exception {
         RandomAccessFile randomAccessFile = null;
         long nextUploadPos = 0L;
@@ -104,7 +103,7 @@ public class DefaultClientWorker extends AbstractClientWorker {
         if (uploadSingleFileOrDir.isFile()) {
             randomAccessFile = new RandomAccessFile(uploadSingleFileOrDir, "r");
         }
-        fileUploadRequest = constructFileUploadRequest(saveParentPath, relativePath, uploadSingleFileOrDir, nextUploadPos, randomAccessFile);
+        fileUploadRequest = constructFileUploadRequest(relativePath, uploadSingleFileOrDir, nextUploadPos, randomAccessFile);
         RandomAccessFile finalRandomAccessFile = randomAccessFile;
         hookMap.put(fileUploadRequest.getIdentifier(), () -> {
             try {
@@ -121,7 +120,7 @@ public class DefaultClientWorker extends AbstractClientWorker {
                 uploadStatus = handleUploadDir(fileUploadRequest, uploadSingleFileOrDir, client);
                 break;
             case FILE_TYPE:
-                uploadStatus = handleUploadFile(fileUploadRequest, saveParentPath, relativePath, uploadSingleFileOrDir, randomAccessFile, client);
+                uploadStatus = handleUploadFile(fileUploadRequest, relativePath, uploadSingleFileOrDir, randomAccessFile, client);
                 break;
         }
         return uploadStatus;

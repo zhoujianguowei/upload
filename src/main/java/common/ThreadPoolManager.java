@@ -6,6 +6,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import org.apache.thrift.util.NamedThreadFactory;
 
 /**
  * 线程池管理、创建以及销毁

@@ -115,20 +115,20 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
         ExecutorUtil.gracefulShutdown(parallelUploadExecutor, 1000);
     }
 
-    protected final String generateFileIdentifier(String saveParentPath, String relativePath, File file) {
-        String path = FileHandlerHelper.generateWholePath(saveParentPath, relativePath, file.getName());
+    protected final String generateFileIdentifier(String relativePath, File file) {
+        String path = FileHandlerHelper.generateWholePath(null, relativePath, file.getName());
         if (file.isFile()) {
             path = path + CommonConstant.UNDERLINE + file.length();
         }
         return FileHandlerHelper.generateUniqueIdentifier(path);
     }
 
-    protected FileUploadRequest constructFileUploadRequest(String saveParentPath, String relativePath, File file, long startPos, RandomAccessFile accessFile) throws IOException {
+    protected FileUploadRequest constructFileUploadRequest(String relativePath, File file, long startPos, RandomAccessFile accessFile) throws IOException {
         FileUploadRequest request = new FileUploadRequest();
         request.setFileName(file.getName());
-        request.setSaveParentFolder(saveParentPath);
+        request.setSaveParentFolder(null);
         request.setRelativePath(relativePath);
-        request.setIdentifier(generateFileIdentifier(saveParentPath, relativePath, file));
+        request.setIdentifier(generateFileIdentifier(relativePath, file));
         //目录和文件的标识不同，目录只需要完全路径即可，文件需要添加上文件字节大小
         if (file.isDirectory()) {
             request.setFileType(FileTypeEnum.DIR_TYPE);
@@ -159,14 +159,12 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
     /**
      * 上传单个文件或者文件夹
      *
-     * @param saveParentPath
      * @param relativePath
      * @param uploadSingleFileOrDir
      * @param client
      * @return
      */
-    public abstract ClientUploadStatus doUploadSingleFile(String saveParentPath,
-                                                          String relativePath, File uploadSingleFileOrDir,
+    public abstract ClientUploadStatus doUploadSingleFile(String relativePath, File uploadSingleFileOrDir,
                                                           FileTransferWorker.Client client, FileUploadRequest[] fileUploadRequests) throws Exception;
 
     /**
@@ -225,7 +223,6 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      * 单个文件上传，支持内部重试
      *
      * @param uploadSingleFile
-     * @param saveParentPath
      * @param rootFile
      * @param remoteHost
      * @param remotePort
@@ -233,7 +230,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
      * @return
      * @throws Exception
      */
-    protected ClientUploadStatus uploadSingleFile(File uploadSingleFile, String saveParentPath, File rootFile, String remoteHost, int remotePort, int connectionTimeout) {
+    protected ClientUploadStatus uploadSingleFile(File uploadSingleFile, File rootFile, String remoteHost, int remotePort, int connectionTimeout) {
         RemoteRpcNode remoteRpcNode = new RemoteRpcNode(remoteHost, remotePort, connectionTimeout);
         ClientUploadStatus clientUploadStatus = ClientUploadStatus.FAIL;
         String relativePath = getRelativePath(rootFile, uploadSingleFile);
@@ -252,7 +249,7 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
             RetryStrategyEnum retryStrategyEnum = RetryStrategyEnum.ABORT;
             Function<FileUploadRequest, String> function = FileUploadRequest::getIdentifier;
             try {
-                clientUploadStatus = doUploadSingleFile(saveParentPath, relativePath, uploadSingleFile, client, fileUploadRequests);
+                clientUploadStatus = doUploadSingleFile(relativePath, uploadSingleFile, client, fileUploadRequests);
                 //正常上传失败，走正常重试策略
                 if (clientUploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
                     retryStrategyEnum = retryStrategy.doRetryOrNot(fileUploadRequests[0], function, clientUploadStatus);
@@ -301,13 +298,12 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
     /**
      * 文件或者文件夹上传上传
      *
-     * @param saveParentPath 服务端保存的路径，绝对路径
      * @param rootFile
      * @param remoteHost
      * @param remotePort
      * @return
      */
-    public final void clientUploadFile(String saveParentPath, File rootFile, String remoteHost, int remotePort, int connectionTimeout) {
+    public final void clientUploadFile(File rootFile, String remoteHost, int remotePort, int connectionTimeout) {
         if (!rootFile.exists()) {
             throw new RuntimeException("file path not exists or no read permission");
         }
@@ -348,10 +344,10 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                     ClientUploadStatus clientUploadStatus = ClientUploadStatus.FAIL;
                     String uploadFileAbsolutePath = uploadSingleFileOrDir.getAbsolutePath();
                     String relativePath = getRelativePath(rootFile, uploadSingleFileOrDir);
-                    String fileIdentifier = generateFileIdentifier(saveParentPath, relativePath, uploadSingleFileOrDir);
+                    String fileIdentifier = generateFileIdentifier(relativePath, uploadSingleFileOrDir);
                     FileTypeEnum fileTypeEnum = uploadSingleFileOrDir.isFile() ? FileTypeEnum.FILE_TYPE : FileTypeEnum.DIR_TYPE;
                     try {
-                        clientUploadStatus = uploadSingleFile(uploadSingleFileOrDir, saveParentPath, rootFile, remoteHost, remotePort, connectionTimeout);
+                        clientUploadStatus = uploadSingleFile(uploadSingleFileOrDir, rootFile, remoteHost, remotePort, connectionTimeout);
                     } catch (Exception e) {
                         LOGGER.error("exception when upload||filePath", e);
                     } finally {

@@ -58,8 +58,9 @@ public class DefaultServerHandler extends AbstractServerHandler {
         if (CollectionUtils.isEmpty(cachedUploadFileStructureList)) {
             LOGGER.info("no upload progress,don't need to load");
         }
+        String saveParentPath = System.getProperty("user.home") + "/Download";
         for (CachedUploadFileStructure cachedUploadFileStructure : cachedUploadFileStructureList) {
-            String absoluteFilePath = FileHandlerHelper.generateWholePath(cachedUploadFileStructure.getSaveParentFolder(), cachedUploadFileStructure.getRelativePath(), cachedUploadFileStructure.getTmpFileName());
+            String absoluteFilePath = FileHandlerHelper.generateWholePath(saveParentPath, cachedUploadFileStructure.getRelativePath(), cachedUploadFileStructure.getTmpFileName());
             File uploadTmpFile = new File(absoluteFilePath);
             if (!uploadTmpFile.exists() || !uploadTmpFile.isFile() || uploadTmpFile.length() < cachedUploadFileStructure.getCachedFileOffset()) {
                 LOGGER.warn("cached file not exists,remove||cacheFileStructure={}", cachedUploadFileStructure);
@@ -92,27 +93,19 @@ public class DefaultServerHandler extends AbstractServerHandler {
      * @return
      */
     protected File createParentFileIfNotExists(FileUploadRequest request) {
-        //保存的父目录绝度路径
-        String parentPath = request.getSaveParentFolder();
-        //相对路径
+        String saveParentPath = System.getProperty("user.home") + "/Download";
         String relativePath = request.getRelativePath();
-        File parentFile = null;
-        if (StringUtils.isBlank(parentPath) && StringUtils.isBlank(relativePath)) {
-            return parentFile;
-        }
-        if (StringUtils.isNotBlank(parentPath)) {
-            parentFile = new File(parentPath.replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR));
-            if (!parentFile.exists()) {
-                synchronized (this) {
-                    if (!parentFile.exists() && !parentFile.mkdirs()) {
-                        LOGGER.error("failed to create parentPath||parentFile={}", parentFile.getAbsolutePath());
-                        return parentFile;
-                    }
+        File parentFile = new File(saveParentPath.replaceAll(Pattern.quote(CommonConstant.WINDOWS_FILE_SEPARATOR), CommonConstant.LINUX_SHELL_SEPARATOR));
+        if (!parentFile.exists()) {
+            synchronized (this) {
+                if (!parentFile.exists() && !parentFile.mkdirs()) {
+                    LOGGER.error("failed to create parentPath||parentFile={}", parentFile.getAbsolutePath());
+                    return parentFile;
                 }
             }
         }
         if (StringUtils.isNotBlank(relativePath)) {
-            parentFile = new File(parentPath, relativePath);
+            parentFile = new File(saveParentPath, relativePath);
             if (!parentFile.exists()) {
                 synchronized (this) {
                     if (!parentFile.exists() && !parentFile.mkdirs()) {
@@ -275,15 +268,11 @@ public class DefaultServerHandler extends AbstractServerHandler {
     public FileUploadResponse doHandleUploadFile(FileUploadRequest request) {
         FileUploadResponse response = new FileUploadResponse();
         String relativePath = request.getRelativePath();
-        String saveParentPath = request.getSaveParentFolder();
-        File parentFile = null;
-        if (StringUtils.isNotBlank(relativePath) || StringUtils.isNotBlank(saveParentPath)) {
-            parentFile = createParentFileIfNotExists(request);
-            if (parentFile != null && !parentFile.exists()) {
-                response.setErrorMsg(String.format("failed to create parent dir folder||path=%s", parentFile.getAbsolutePath()));
-                response.setUploadStatusResult(ResResult.UNKNOWN_ERROR);
-                return response;
-            }
+        File parentFile = createParentFileIfNotExists(request);
+        if (parentFile != null && !parentFile.exists()) {
+            response.setErrorMsg(String.format("failed to create parent dir folder||path=%s", parentFile.getAbsolutePath()));
+            response.setUploadStatusResult(ResResult.UNKNOWN_ERROR);
+            return response;
         }
         if (targetFileExists(parentFile == null ? null : parentFile.getAbsolutePath(), request)) {
             response.setUploadStatusResult(ResResult.FILE_END);

@@ -50,26 +50,25 @@ public class FileTransferClient {
     }
 
     public void uploadFile(String uploadFileOrDirPath, String host, String[] nameFilters) {
-        this.uploadFile(null, uploadFileOrDirPath, host, FileTransferServer.FILE_HANDLER_SERVER_PORT, CONNECTION_TIME_OUT, nameFilters);
+        this.uploadFile(uploadFileOrDirPath, host, FileTransferServer.FILE_HANDLER_SERVER_PORT, CONNECTION_TIME_OUT, nameFilters);
     }
 
-    public void uploadFile(String saveParentPath, String uploadFileOrDirPath, String host) {
-        this.uploadFile(saveParentPath, uploadFileOrDirPath, host, CONNECTION_TIME_OUT);
+    public void uploadFile(String uploadFileOrDirPath, String host) {
+        this.uploadFile(uploadFileOrDirPath, host, CONNECTION_TIME_OUT);
     }
 
-    public void uploadFile(String saveParentPath, String uploadFileOrDirPath, String host, int connectionTimeOut) {
-        this.uploadFile(saveParentPath, uploadFileOrDirPath, host, FileTransferServer.FILE_HANDLER_SERVER_PORT, connectionTimeOut, null);
+    public void uploadFile(String uploadFileOrDirPath, String host, int connectionTimeOut) {
+        this.uploadFile(uploadFileOrDirPath, host, FileTransferServer.FILE_HANDLER_SERVER_PORT, connectionTimeOut, null);
     }
 
     /**
      * client begin transfer file
      *
-     * @param saveParentPath      文件上传保存到服务端的父目录
      * @param uploadFileOrDirPath 上传文件或者文件夹绝对路径
      * @param host                服务端ip地址
      * @param port                服务端端口
      */
-    public void uploadFile(String saveParentPath, String uploadFileOrDirPath, String host,
+    public void uploadFile(String uploadFileOrDirPath, String host,
                            int port, int connectionTimeOut, String[] nameFilters) {
         File file = new File(uploadFileOrDirPath);
         if (!file.exists() || !file.canRead()) {
@@ -82,7 +81,7 @@ public class FileTransferClient {
         if (ArrayUtils.isNotEmpty(nameFilters)) {
             clientWorker.setNameFilters(nameFilters);
         }
-        clientWorker.clientUploadFile(saveParentPath, file, host, port, connectionTimeOut);
+        clientWorker.clientUploadFile(file, host, port, connectionTimeOut);
     }
 
     public UploadFileProgressCallback getUploadFileProgressCallback() {

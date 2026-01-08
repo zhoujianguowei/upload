@@ -14,7 +14,7 @@ public class FileTransferClientTest {
 
     @Test
     public void uploadFile() {
-        fileTransferClient.uploadFile("E:/test/aabbbcc", "E:/课件/面试", serverHost);
+        fileTransferClient.uploadFile("E:/课件/面试", serverHost);
 
     }
 }
