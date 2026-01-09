@@ -5,20 +5,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Properties;
 
-/**
- * 持久化保存的内容
- */
 public class ConfigDataHelper {
-    /**
-     * 配置文件路径
-     */
-    private static final String STORE_CONFIG_DATA_PATH = System.getProperty("store.properties", "store.properties");
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigDataHelper.class);
 
     static {
@@ -26,75 +15,114 @@ public class ConfigDataHelper {
     }
 
     public static void loadConfigData() {
-        try {
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH,
-                System.getProperty(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH, String.valueOf(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH_VALUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES,
-                System.getProperty(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES, String.valueOf(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES_VALUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM,
-                System.getProperty(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM, String.valueOf(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM_VALUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT,
-                System.getProperty(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT, String.valueOf(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT_VALUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH,
-                System.getProperty(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH, String.valueOf(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH_VALUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT,
-                System.getProperty(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT, String.valueOf(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT_VALUE)));
-            saveStoreConfigDataIfConfigNotExists(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES,
-                System.getProperty(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES, String.valueOf(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES_VALUE)));
-        } catch (IOException e) {
-            throw new RuntimeException("failed to load config", e);
+        ClientConfig clientConfig = ConfigOperation.getClientConfig();
+        boolean clientModified = false;
+        if (clientConfig.getPerUploadBytesLength() == 0) {
+            clientConfig.setPerUploadBytesLength(BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH_VALUE);
+            clientModified = true;
         }
-    }
+        if (clientConfig.getFileContentBrokerMaxRetryTimes() == 0) {
+            clientConfig.setFileContentBrokerMaxRetryTimes(BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES_VALUE);
+            clientModified = true;
+        }
+        if (clientConfig.getMaxParallelUploadFileNum() == 0) {
+            clientConfig.setMaxParallelUploadFileNum(BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM_VALUE);
+            clientModified = true;
+        }
+        if (!clientConfig.isTraceClientUploadSpeedSwitch()) {
+            clientConfig.setTraceClientUploadSpeedSwitch(BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH_VALUE);
+            clientModified = true;
+        }
+        if (clientConfig.getFileUploadMaxRetryCount() == 0) {
+            clientConfig.setFileUploadMaxRetryCount(BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT_VALUE);
+            clientModified = true;
+        }
+        if (clientConfig.getClientCreateConnectionMaxTryTimes() == 0) {
+            clientConfig.setClientCreateConnectionMaxTryTimes(BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES_VALUE);
+            clientModified = true;
+        }
+        if (StringUtils.isBlank(clientConfig.getFileUploadSaveParentPath())) {
+            clientConfig.setFileUploadSaveParentPath(BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH_VALUE);
+            clientModified = true;
+        }
+        if (clientModified) {
+            ConfigOperation.saveClientConfig(clientConfig);
+        }
 
-    /**
-     * 如果对应的配置不存在的话，写入配置；否则不做操作
-     *
-     * @param key
-     * @param configData
-     * @throws IOException
-     */
-    public static synchronized void saveStoreConfigDataIfConfigNotExists(String key, String configData) throws IOException {
-        if (StringUtils.isNotBlank(getStoreConfigData(key))) {
-            return;
+        ServerConfig serverConfig = ConfigOperation.getServerConfig();
+        boolean serverModified = false;
+        if (serverConfig.getTransferFileServerPort() == 0) {
+            serverConfig.setTransferFileServerPort(BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT_VALUE);
+            serverModified = true;
         }
-        saveStoreConfigData(key, configData);
+        if (serverModified) {
+            ConfigOperation.saveServerConfig(serverConfig);
+        }
     }
 
     public static synchronized void saveStoreConfigData(String key, String configData) throws IOException {
-        File storeFile = new File(STORE_CONFIG_DATA_PATH);
-        if (!storeFile.exists() || !storeFile.isFile()) {
-            if (!storeFile.createNewFile()) {
-                throw new RuntimeException("failed to create config file||path=" + storeFile.getAbsolutePath());
-            }
-        }
-        Properties properties = new Properties();
-        try (FileInputStream fis = new FileInputStream(storeFile)) {
-            properties.load(fis);
-        }
-        properties.setProperty(key, configData);
-        try (FileOutputStream fos = new FileOutputStream(storeFile)) {
-            properties.store(fos, "config data");
+        if (BusinessConstant.ConfigData.HOST_IDENTIFIER_KEY.equals(key)) {
+            ClientConfig clientConfig = ConfigOperation.getClientConfig();
+            clientConfig.setHostIdentifier(configData);
+            ConfigOperation.saveClientConfig(clientConfig);
+        } else if (BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH.equals(key)) {
+            ClientConfig clientConfig = ConfigOperation.getClientConfig();
+            clientConfig.setPerUploadBytesLength(Integer.parseInt(configData));
+            ConfigOperation.saveClientConfig(clientConfig);
+        } else if (BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES.equals(key)) {
+            ClientConfig clientConfig = ConfigOperation.getClientConfig();
+            clientConfig.setFileContentBrokerMaxRetryTimes(Integer.parseInt(configData));
+            ConfigOperation.saveClientConfig(clientConfig);
+        } else if (BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM.equals(key)) {
+            ClientConfig clientConfig = ConfigOperation.getClientConfig();
+            clientConfig.setMaxParallelUploadFileNum(Integer.parseInt(configData));
+            ConfigOperation.saveClientConfig(clientConfig);
+        } else if (BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT.equals(key)) {
+            ServerConfig serverConfig = ConfigOperation.getServerConfig();
+            serverConfig.setTransferFileServerPort(Integer.parseInt(configData));
+            ConfigOperation.saveServerConfig(serverConfig);
+        } else if (BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH.equals(key)) {
+            ClientConfig clientConfig = ConfigOperation.getClientConfig();
+            clientConfig.setTraceClientUploadSpeedSwitch(Boolean.parseBoolean(configData));
+            ConfigOperation.saveClientConfig(clientConfig);
+        } else if (BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT.equals(key)) {
+            ClientConfig clientConfig = ConfigOperation.getClientConfig();
+            clientConfig.setFileUploadMaxRetryCount(Integer.parseInt(configData));
+            ConfigOperation.saveClientConfig(clientConfig);
+        } else if (BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES.equals(key)) {
+            ClientConfig clientConfig = ConfigOperation.getClientConfig();
+            clientConfig.setClientCreateConnectionMaxTryTimes(Integer.parseInt(configData));
+            ConfigOperation.saveClientConfig(clientConfig);
+        } else if (BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH.equals(key)) {
+            ClientConfig clientConfig = ConfigOperation.getClientConfig();
+            clientConfig.setFileUploadSaveParentPath(configData);
+            ConfigOperation.saveClientConfig(clientConfig);
         }
     }
 
     public static String getStoreConfigData(String configKey) {
-        File storeFile = new File(STORE_CONFIG_DATA_PATH);
-        if (!storeFile.exists() || !storeFile.isFile()) {
-            return null;
-        }
-        try (FileInputStream fis = new FileInputStream(storeFile)) {
-            Properties properties = new Properties();
-            properties.load(fis);
-            return properties.getProperty(configKey);
-        } catch (IOException e) {
-            LOGGER.error("file io exception||filePath=" + storeFile.getAbsolutePath(), e);
+        if (BusinessConstant.ConfigData.HOST_IDENTIFIER_KEY.equals(configKey)) {
+            return ConfigOperation.getClientConfig().getHostIdentifier();
+        } else if (BusinessConstant.ConfigData.PER_UPLOAD_BYTES_LENGTH.equals(configKey)) {
+            return String.valueOf(ConfigOperation.getClientConfig().getPerUploadBytesLength());
+        } else if (BusinessConstant.ConfigData.FILE_CONTENT_BROKER_MAX_RETRY_TIMES.equals(configKey)) {
+            return String.valueOf(ConfigOperation.getClientConfig().getFileContentBrokerMaxRetryTimes());
+        } else if (BusinessConstant.ConfigData.MAX_PARALLEL_UPDATE_FILE_NUM.equals(configKey)) {
+            return String.valueOf(ConfigOperation.getClientConfig().getMaxParallelUploadFileNum());
+        } else if (BusinessConstant.ConfigData.TRANSFER_FILE_SERVER_PORT.equals(configKey)) {
+            return String.valueOf(ConfigOperation.getServerConfig().getTransferFileServerPort());
+        } else if (BusinessConstant.ConfigData.TRACE_CLIENT_UPLOAD_SPEED_SWITCH.equals(configKey)) {
+            return String.valueOf(ConfigOperation.getClientConfig().isTraceClientUploadSpeedSwitch());
+        } else if (BusinessConstant.ConfigData.FILE_UPLOAD_MAX_RETRY_COUNT.equals(configKey)) {
+            return String.valueOf(ConfigOperation.getClientConfig().getFileUploadMaxRetryCount());
+        } else if (BusinessConstant.ConfigData.CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES.equals(configKey)) {
+            return String.valueOf(ConfigOperation.getClientConfig().getClientCreateConnectionMaxTryTimes());
+        } else if (BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH.equals(configKey)) {
+            return ConfigOperation.getClientConfig().getFileUploadSaveParentPath();
         }
         return null;
     }
-    
-    /**
-     * 获取整型配置值
-     */
+
     public static int getIntConfig(String key, int defaultValue) {
         String value = getStoreConfigData(key);
         if (value != null) {
@@ -106,10 +134,7 @@ public class ConfigDataHelper {
         }
         return defaultValue;
     }
-    
-    /**
-     * 获取布尔型配置值
-     */
+
     public static boolean getBooleanConfig(String key, boolean defaultValue) {
         String value = getStoreConfigData(key);
         if (value != null) {
@@ -122,23 +147,14 @@ public class ConfigDataHelper {
         return defaultValue;
     }
 
-    /**
-     * 获取文件上传保存的父目录，默认值为 user.home/Download
-     */
     public static String getFileUploadSaveParentPath() {
-        String defaultPath = BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH_VALUE;
-        String value = getStoreConfigData(BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH);
-        return StringUtils.isNotBlank(value) ? value : defaultPath;
+        String value = ConfigOperation.getClientConfig().getFileUploadSaveParentPath();
+        return StringUtils.isNotBlank(value) ? value : BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH_VALUE;
     }
 
-    /**
-     * 设置文件上传保存的父目录
-     */
     public static void setFileUploadSaveParentPath(String path) {
-        try {
-            saveStoreConfigData(BusinessConstant.ConfigData.FILE_UPLOAD_SAVE_PARENT_PATH, path);
-        } catch (IOException e) {
-            LOGGER.error("failed to save file upload save parent path", e);
-        }
+        ClientConfig clientConfig = ConfigOperation.getClientConfig();
+        clientConfig.setFileUploadSaveParentPath(path);
+        ConfigOperation.saveClientConfig(clientConfig);
     }
 }

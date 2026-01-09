@@ -128,22 +128,22 @@ public class StorageFormat {
             return;
         }
         Class superCls = c.getSuperclass();
-        System.out.println(c + "的父类信息*********************");
+        LOGGER.info("{}的父类信息*********************", c);
         while (superCls != null) {
-            System.out.println("\t" + superCls);
+            LOGGER.info("\t{}", superCls);
             getClassInfo(superCls);
             superCls = superCls.getSuperclass();
         }
-        System.out.println("接口信息:");
+        LOGGER.info("接口信息:");
         Class<?> interfaces[] = c.getInterfaces();
         for (Class inter : interfaces) {
-            System.out.println("\t" + inter);
+            LOGGER.info("\t{}", inter);
         }
         List<Field> attrFields = Arrays.asList(c.getDeclaredFields());
         for (Field field : attrFields) {
             String fieldName = field.getName();
             Class fieldClass = field.getType();
-            System.out.println("\t" + "fieldName:" + fieldName + "\tType:" + fieldClass);
+            LOGGER.info("\tfieldName:{} Type:{}", fieldName, fieldClass);
         }
     }
 

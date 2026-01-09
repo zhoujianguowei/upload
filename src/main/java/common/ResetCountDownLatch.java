@@ -1,6 +1,9 @@
 package common;
 
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,6 +14,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * countdown latch with reset and clear metho
  */
 public class ResetCountDownLatch extends CountDownLatch {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResetCountDownLatch.class);
     private static Field SYNC_FIELD = null;
     private static Field STATE_FIELD = null;
     protected AbstractQueuedSynchronizer sync = null;
@@ -50,18 +54,17 @@ public class ResetCountDownLatch extends CountDownLatch {
         try {
             SET_STATE_METHOD.invoke(sync, initCount);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.error("reset error", e);
         }
     }
 
     public void releaseAll() {
         try {
-            //fixme还是有问题
             SET_STATE_METHOD.invoke(sync, 0);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            LOGGER.error("releaseAll error", e);
         } catch (InvocationTargetException e) {
-            e.printStackTrace();
+            LOGGER.error("releaseAll error", e);
         }
     }
 }

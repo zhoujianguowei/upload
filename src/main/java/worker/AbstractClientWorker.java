@@ -356,10 +356,10 @@ public abstract class AbstractClientWorker extends AbstractUploadFileProgressCal
                         countDownLatch.countDown();
                         semaphore.release();
                         if (clientUploadStatus != ClientUploadStatus.UPLOAD_FINISH) {
-                            uploadSuccessFileCount.incrementAndGet();
+                            uploadFailFileCount.incrementAndGet();
                             onFileUploadFail(fileIdentifier, uploadFileAbsolutePath, fileTypeEnum);
                         } else {
-                            uploadFailFileCount.incrementAndGet();
+                            uploadSuccessFileCount.incrementAndGet();
                             onFileUploadFinish(fileIdentifier, uploadFileAbsolutePath, fileTypeEnum);
                         }
                         if (clientUploadStatus == ClientUploadStatus.TERMINATE_ALL) {

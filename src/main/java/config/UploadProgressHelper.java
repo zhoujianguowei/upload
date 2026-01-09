@@ -29,7 +29,7 @@ public class UploadProgressHelper {
                     throw new RuntimeException("failed to create upload progress file");
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("create upload progress data exception||filePath={}", progressFile.getAbsolutePath(), e);
                 throw new Error("create upload progress data exception||filePath=" + progressFile.getAbsolutePath(), e);
             }
         }
@@ -43,7 +43,6 @@ public class UploadProgressHelper {
                 progressCachedDataList = JSON.parseArray(uploadProgressData, CachedUploadFileStructure.class);
             }
         } catch (IOException e) {
-            e.printStackTrace();
             LOGGER.error("load config data error", e);
             throw new RuntimeException("load config data error");
         }
