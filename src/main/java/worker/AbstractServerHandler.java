@@ -2,8 +2,10 @@ package worker;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.RateLimiter;
 import common.ErrorMeta;
 import common.FileHandlerHelper;
+import config.ConfigDataHelper;
 import cons.BusinessConstant;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -14,6 +16,7 @@ import rpc.thrift.file.transfer.FileUploadRequest;
 import rpc.thrift.file.transfer.FileUploadResponse;
 import rpc.thrift.file.transfer.ResResult;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import static cons.BusinessConstant.FileUploadErrorMsg;
@@ -37,6 +40,8 @@ public abstract class AbstractServerHandler {
      * @return
      */
     abstract boolean authorized(String token, String fileName);
+
+    protected RateLimiter globalRateLimiter = RateLimiter.create(Double.parseDouble(ConfigDataHelper.getStoreConfigData(BusinessConstant.ConfigData.CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD)));
 
     protected void shutdown() {
 
@@ -95,7 +100,29 @@ public abstract class AbstractServerHandler {
 
     }
 
+    protected boolean validateFileCheckSum(FileUploadRequest request) {
+        FileTypeEnum fileTypeEnum = request.getFileType();
+        if (fileTypeEnum != FileTypeEnum.FILE_TYPE) {
+            return true;
+        }
+        String checkSum = request.getCheckSum();
+        String expectCheckSum = FileHandlerHelper.generateContentsCheckSum(request.getContents(), request.getBytesLength());
+        if (StringUtils.isBlank(checkSum) || !Objects.equals(expectCheckSum, checkSum)) {
+            LOGGER.error("file checkSum error||checkSum={}||expectCheckSum={}||request={}", checkSum, expectCheckSum, request);
+            return false;
+        }
+        return true;
+    }
+
     public abstract FileUploadResponse doHandleUploadFile(FileUploadRequest request);
+
+    protected void limitUploadSpeed(FileUploadRequest request, RateLimiter rateLimiter) {
+        if (request.getFileType() == FileTypeEnum.DIR_TYPE) {
+            return;
+        }
+        int uploadBytesLength = request.getBytesLength();
+        rateLimiter.acquire(uploadBytesLength);
+    }
 
     /***
      * 构造当前上传的文件基本内容，首次上传的时候设置
@@ -133,14 +160,15 @@ public abstract class AbstractServerHandler {
         errorMeta.combine(validateRequestParam(request));
         if (!errorMeta.isLegal()) {
             response.setUploadStatusResult(ResResult.FILE_PARAM_VALIDATION_FAIL);
-            if (errorMeta.getAllErrorMsgList().contains(FileUploadErrorMsg.FILE_CHECK_SUM_VALIDATE_FAILED)) {
-                LOGGER.warn("file upload content changed");
-                response.setUploadStatusResult(ResResult.FILE_BROKEN);
-            }
             response.setErrorMsg(errorMeta.getDefaultErrorMsg());
             LOGGER.error("param or token failed to validate||request={}||token={}||errorMsgInfo={}", request, token, errorMeta.getDefaultErrorMsg());
             return response;
         }
+        if (!validateFileCheckSum(request)) {
+            response.setUploadStatusResult(ResResult.FILE_BROKEN);
+            return response;
+        }
+
         if (uploadProgressCacheLoader.getIfPresent(request.getIdentifier()) == null) {
             synchronized (this) {
                 //首次传输，记录文件信息，包括文件名、文件大小、文件类型等
@@ -149,7 +177,7 @@ public abstract class AbstractServerHandler {
                 }
             }
         }
-
+        limitUploadSpeed(request, globalRateLimiter);
         try {
             response = doHandleUploadFile(request);
         } catch (Exception e) {

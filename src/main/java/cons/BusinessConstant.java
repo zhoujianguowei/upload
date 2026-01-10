@@ -1,6 +1,7 @@
 package cons;
 
 import handler.TraceUploadProgressSpeedProgressCallback;
+import org.apache.thrift.util.StorageFormat;
 
 /**
  * 业务类常量
@@ -65,12 +66,17 @@ public class BusinessConstant {
          * 文件上传最大重试次数，这个重试次数限制的是文件重试的类型。包括异常重试、非异常重试等
          */
         String FILE_UPLOAD_MAX_RETRY_COUNT = "file_upload_max_retry_count";
-        int FILE_UPLOAD_MAX_RETRY_COUNT_VALUE = 5;
+        int FILE_UPLOAD_MAX_RETRY_COUNT_VALUE = 3;
         /**
          * 客户端建立rpc连接最大重试次数，默认5次
          */
         String CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES = "client_create_connection_max_try_times";
         int CLIENT_CREATE_CONNECTION_MAX_TRY_TIMES_VALUE = 5;
+        /**
+         * 客户端最大上传速度，默认限速100M
+         */
+        String CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD = "client_upload_limit_speed_threshold";
+        double CLIENT_UPLOAD_LIMIT_SPEED_THRESHOLD_VALUE = StorageFormat.transformSize("100mb", "byte");
         /**
          * 文件上传保存的父目录
          */

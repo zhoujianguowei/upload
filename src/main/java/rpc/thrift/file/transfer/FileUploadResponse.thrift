@@ -1,20 +1,14 @@
 namespace java rpc.thrift.file.transfer
 //请求结果状态枚举
 enum ResResult{
-    //文件首次传输
     FILE_START,
-    //传输参数错误
     FILE_PARAM_VALIDATION_FAIL,
-    //文件传输成功，还没有传输完成
     SUCCESS,
-    //文件token鉴权失败
     TOKEN_FAILED,
-    //文件传输损坏
     FILE_BROKEN,
-    //其它未知错误
     UNKNOWN_ERROR,
-    //文件传输完成
-    FILE_END
+    FILE_END,
+    FIX_UPLOAD_OFFSET
 }
 struct FileUploadResponse{
     1:required ResResult uploadStatusResult;

@@ -23,9 +23,8 @@ public class ThreadPoolManager {
     /**
      * 控制文件并发上传,核心线程数10，最大线程数50
      */
-    private static final ExecutorService clientParallelUploadFileNumExecutorService = new ThreadPoolExecutor(
-            10, 50, 60, TimeUnit.SECONDS, new LinkedBlockingDeque<>(), 
-            new NamedThreadFactory("file-upload-pool"));
+    private static final ExecutorService clientParallelUploadFileNumExecutorService = new ThreadPoolExecutor(50, 50, 60,
+            TimeUnit.SECONDS, new LinkedBlockingDeque<>());
 
     public static ScheduledExecutorService getServerSyncUploadProgressScheduler() {
         return serverSyncUploadProgressScheduler;

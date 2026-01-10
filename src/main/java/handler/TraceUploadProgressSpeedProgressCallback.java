@@ -46,9 +46,13 @@ public class TraceUploadProgressSpeedProgressCallback implements UploadFileProgr
                 simpleUploadProgress.setFilePath(updateUploadProgress.getFilePath());
                 simpleUploadProgress.setTotalFileBytes(updateUploadProgress.getTotalFileBytes());
                 simpleUploadProgress.setFileIdentifier(updateUploadProgress.getFileIdentifier());
-                simpleUploadProgress.setUploadBytesLength(0L);
+                simpleUploadProgress.setUploadBytesLength(updateUploadProgress.getUploadBytesLength());
                 return simpleUploadProgress;
             });
+            if (updateUploadProgress.getUploadBytesLength() < preUploadProgress.getUploadBytesLength()) {
+                preUploadProgress.setUploadBytesLength(updateUploadProgress.getUploadBytesLength());
+                continue;
+            }
             long diffUploadBytesLength = updateUploadProgress.getUploadBytesLength() - preUploadProgress.getUploadBytesLength();
             LOGGER.info("upload rate||rate={}||filePath={}", StorageFormat.formatStorageSize(String.valueOf(diffUploadBytesLength) + "byte", UPLOAD_SPEED_FORMAT), updateUploadProgress.getFilePath());
             totalUploadBytesPerSecond += diffUploadBytesLength;
